@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recon Automation Platform</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Added html2pdf for Professional PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* --- GLOBAL APP STYLES --- */
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #333; }
+        .navbar-brand { font-weight: 800; color: #d4af37 !important; }
+        .bg-navy { background-color: #1b365d; } .text-navy { color: #1b365d; }
+        .bg-gold { background-color: #d4af37; } .text-gold { color: #d4af37; }
+        .nav-tabs .nav-link { font-weight: 600; color: #495057; border: none; padding: 12px 20px; }
+        .nav-tabs .nav-link.active { color: #1b365d; border-bottom: 3px solid #d4af37; background-color: transparent; }
+        .card { border: none; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { background-color: #fff; border-bottom: 1px solid #edf2f9; font-weight: 700; padding: 15px 20px; }
+        .table th { background-color: #f8f9fa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; vertical-align: middle; cursor: grab; }
+        .table td { font-size: 0.85rem; vertical-align: middle; }
+        .badge-variance { background-color: #fff3cd; color: #856404; }
+        .badge-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .badge-success-light { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        
+        .cursor-pointer { cursor: pointer; }
+        .row-level-1 { background-color: #212529 !important; color: white; font-weight: bold; }
+        .row-level-2 { background-color: #e9ecef !important; font-weight: bold; border-left: 4px solid #d4af37; }
+        .row-level-3 { background-color: #fff !important; }
+        .row-level-3 td:first-child { padding-left: 2rem; border-left: 4px solid #1b365d; }
+        .icon-transition { transition: transform 0.2s; } .rotate-90 { transform: rotate(90deg); }
+        .custom-file-input { margin-bottom: 10px; }
+        .filter-select { font-size: 0.75rem; border: 1px solid #ced4da; }
+        .filtered-out { display: none !important; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .dropdown-menu { z-index: 1055 !important; }
+        
+        .custom-pills .nav-link { color: #0d6efd; border-radius: 50rem; padding: 8px 16px; margin-right: 8px; font-weight: 600; font-size: 0.90rem; border: 1px solid transparent; }
+        .custom-pills .nav-link.active { background-color: #0d6efd; color: white; border-color: #0d6efd; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3); }
+        .btn-green-outline { color: #198754; border: 1px solid #198754; background-color: white; font-weight: 600; padding: 4px 16px; font-size: 0.85rem; border-radius: 50rem; }
+        .kpi-card { border-radius: 10px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .proof-box { border-left-width: 5px !important; }
+        .btn-pill { border-radius: 50rem !important; font-weight: 600 !important; }
+        
+        .section-header-gradient { background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%); border-top-left-radius: 8px; border-top-right-radius: 8px; padding: 12px 20px; }
+        .section-header-gradient h6 { margin: 0; color: #ffffff !important; font-weight: 700; letter-spacing: 0.5px; font-size: 0.95rem; }
+        .table-container-custom { background: #fff; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 2rem; border: 1px solid #e5e7eb; border-top: none; }
+        .btn-extract-custom { background-color: #10b981; border-color: #10b981; color: white; border-radius: 50rem; }
+        
+        /* =========================================================
+           TAB 6 SPECIFIC STYLES: CONSULTANCY GRADE SUMMARY SHEET
+           ========================================================= */
+        .combined-total-wrapper { border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 2rem; margin-bottom: 3rem; }
+        .combined-total-wrapper tfoot { background-color: #2b3035 !important; } .combined-total-wrapper tfoot td { color: white !important; }
+        
+        /* Corporate Reporting Theme - Pearl/Sand Background */
+        .recon-sheet-container { 
+            max-width: 1000px; 
+            margin: 0 auto 40px auto; 
+            background: #fdfcf9; 
+            background-image: linear-gradient(135deg, #fdfcf9 0%, #f4f1ea 100%);
+            border-radius: 8px; 
+            box-shadow: 0 16px 40px rgba(0,0,0,0.08); 
+            padding: 50px 70px; 
+            border: 1px solid #e2e8f0; 
+            border-top: 8px solid #1b365d; 
+            position: relative;
+        }
+        .recon-sheet-container::after {
+            content: ''; position: absolute; top: -8px; right: 80px; width: 100px; height: 8px; background: #d4af37; 
+        }
+        .recon-sheet-container::before {
+            content: ''; position: absolute; top: -8px; right: 180px; width: 40px; height: 8px; background: #A71930; 
+        }
+        .recon-sheet-title { 
+            color: #1b365d; font-size: 28px; font-weight: 800; text-align: left; margin-bottom: 35px; 
+            border-bottom: 3px solid #e2e8f0; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;
+        }
+        .recon-sheet-title::after { content: 'FINANCIAL RECONCILIATION'; font-size: 12px; letter-spacing: 2px; color: #3b82f6; font-weight: 800; background: #eff6ff; padding: 4px 12px; border-radius: 50rem; }
+        
+        .recon-metadata { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 40px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .recon-metadata td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+        .recon-metadata tr:last-child td { border-bottom: none; }
+        .recon-metadata td.meta-label { width: 35%; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; background: transparent; border-right: 1px solid #e2e8f0; }
+        .recon-metadata td.meta-value { width: 65%; font-weight: 600; color: #0f172a; background: transparent; }
+        
+        .recon-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: none; }
+        .recon-table th, .recon-table td { padding: 14px 20px; border: none; border-bottom: 1px dashed #cbd5e1; font-size: 0.95rem; }
+        .recon-table td.val-col { width: 30%; text-align: right; font-family: 'Segoe UI', Tahoma, monospace; font-size: 1.05rem; font-weight: 600; color: #0f172a; }
+        
+        .recon-table tr.section-hdr { background: linear-gradient(90deg, rgba(27, 54, 93, 0.05) 0%, transparent 100%); color: #1b365d; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        .recon-table tr.section-hdr td { border-bottom: 2px solid #1b365d; border-left: 4px solid #A71930; padding-top: 20px; padding-bottom: 12px; }
+        
+        .recon-table tr.total-row { background-color: transparent; font-weight: 800; font-size: 1.1rem; }
+        .recon-table tr.total-row td { border-top: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; color: #0f172a; }
+        .recon-table tr.total-row.bg-white { background-color: transparent !important; }
+        .recon-table tr.total-row.bg-white td { border-top: 1px solid #cbd5e1 !important; border-bottom: none !important; }
+        
+        .bg-danger-subtle { background-color: #fef2f2 !important; }
+        .text-danger { color: #dc2626 !important; }
+        .bg-success-subtle { background-color: #f0fdf4 !important; }
+        .text-success { color: #16a34a !important; }
+        
+        .recon-table tr.data-row:hover { background-color: rgba(255, 255, 255, 0.8); transition: background-color 0.2s; }
+        
+        [contenteditable="true"]:hover { background-color: #ffffff !important; outline: 1px dashed #cbd5e1; cursor: text; border-radius: 4px; padding: 2px 8px; margin-left: -8px; }
+        .recon-class-dd { font-weight: 600; color: #1b365d; border-color: #cbd5e1; background-color: #ffffff; cursor: pointer; }
+
+        /* =========================================================
+           TAB 5: MODERN EXECUTIVE DASHBOARD STYLES
+           ========================================================= */
+        #tab5 { background-color: #f4f7f6; }
+        #tab5 .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 18px; box-shadow: 0 8px 24px rgba(31, 38, 135, 0.05); transition: all 0.3s ease; position: relative; overflow: hidden; }
+        #tab5 .glass-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(31, 38, 135, 0.1); }
+        #tab5 .exec-gradient-bg { background: linear-gradient(135deg, #1b365d 0%, #4f46e5 100%); color: #ffffff; }
+        #tab5 .exec-gradient-bg-purple { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; }
+        #tab5 .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; opacity: 0.8; margin-bottom: 0.5rem; }
+        #tab5 .kpi-value { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.2rem; line-height: 1.1; }
+        #tab5 .kpi-subtext { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        #tab5 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+        #tab5 .chart-container { position: relative; height: 280px; width: 100%; }
+        #tab5 .exec-filter-bar { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); border-radius: 50rem; padding: 10px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #edf2f9; z-index: 100; position: sticky; top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <nav class="navbar navbar-expand-lg bg-navy navbar-dark shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fa-solid fa-hotel me-2"></i> Reward Reconciliation</a>
+        </div>
+    </nav>
+
+    <div class="bg-light border-bottom shadow-sm py-2 px-4 d-flex flex-wrap align-items-center gap-3">
+        <span class="fw-bold text-navy"><i class="fa-solid fa-filter text-gold me-1"></i> Global Filters:</span>
+        <select id="unit-filter" onchange="applyFilters(true)" class="form-select form-select-sm w-auto shadow-sm border-secondary btn-pill">
+            <option value="ALL">All Units</option>
+            <option value="12ABC">12ABC (Grand Resort)</option>
+        </select>
+        <select id="month-filter" onchange="applyFilters(true)" class="form-select form-select-sm w-auto shadow-sm border-secondary btn-pill">
+            <option value="ALL">All Months</option>
+        </select>
+    </div>
+
+    <div class="container-fluid py-4 px-4">
+        
+        <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab1" type="button"><i class="fa-solid fa-database me-1"></i> 1. Cleansed Data</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab2" type="button"><i class="fa-solid fa-sitemap me-1"></i> 2. SL vs GL</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab3" type="button"><i class="fa-solid fa-water me-1"></i> 3. Redemption vs. Reimbursement (SL vs. SL)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab4" type="button"><i class="fa-solid fa-link me-1"></i> 4. Manual Match</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab5" type="button"><i class="fa-solid fa-chart-pie me-1"></i> 5. Dashboard</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab6" type="button"><i class="fa-solid fa-list-check me-1"></i> 6. Reconciliation</button></li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+
+            <!-- TAB 1 -->
+            <div class="tab-pane fade show active" id="tab1">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card h-100 card-custom">
+                            <div class="card-header"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i> Data Ingestion</div>
+                            <div class="card-body">
+                                <label class="fw-bold small">1. PeopleSoft GL</label><input type="file" id="file-gl" class="form-control form-control-sm custom-file-input btn-pill" accept=".xlsx,.csv">
+                                <label class="fw-bold small">2. PMS Redemptions</label><input type="file" id="file-red" class="form-control form-control-sm custom-file-input btn-pill" accept=".xlsx,.csv">
+                                <label class="fw-bold small">3. OFB Reimbursements</label><input type="file" id="file-reimb" class="form-control form-control-sm custom-file-input btn-pill" accept=".xlsx,.csv">
+                                <label class="fw-bold small">4. Redemption Certificates</label><input type="file" id="file-cert" class="form-control form-control-sm custom-file-input btn-pill" accept=".xlsx,.csv">
+                                <label class="fw-bold small">5. Prior Period Open Items</label><input type="file" id="file-open" class="form-control form-control-sm custom-file-input border-warning btn-pill" accept=".xlsx,.csv">
+                                <div class="d-grid gap-2 mt-4">
+                                    <button class="btn btn-primary btn-sm btn-pill" id="btn-run-engine" onclick="executePipeline()"><i class="fa-solid fa-gears me-1"></i> Execute Pipeline</button>
+                                    <button class="btn btn-outline-secondary btn-sm btn-pill" onclick="loadDummyData()"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Load Demo Data</button>
+                                    <button class="btn btn-danger btn-sm btn-pill mt-1" onclick="clearApplicationData()"><i class="fa-solid fa-trash-can me-1"></i> Clear Old Data</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fs-5 fw-bold text-navy"><i class="fa-solid fa-star me-2 text-gold"></i> Phase 1: Golden Source Cleansed Data</span>
+                            <div><button class="btn btn-green-outline shadow-sm me-1" onclick="exportTableToExcel('table-cl-red', 'Redemptions', 'Cleansed_Redemptions')"><i class="fa-solid fa-file-excel"></i> Extract Redemptions</button> <button class="btn btn-green-outline shadow-sm" onclick="exportTableToExcel('table-cl-reimb', 'Reimbursements', 'Cleansed_Reimbursements')"><i class="fa-solid fa-file-excel"></i> Extract Reimbursements</button></div>
+                        </div>
+                        <ul class="nav nav-pills custom-pills mb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-cleansed-red">Cleansed Redemptions</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-cleansed-reimb">Cleansed Reimbursements</button></li></ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="pills-cleansed-red">
+                                <div class="section-header-gradient"><h6>Cleansed Redemptions</h6></div>
+                                <div class="table-responsive table-container-custom" style="max-height: 450px;">
+                                    <table class="table table-hover table-sm table-striped table-filterable mb-0" id="table-cl-red">
+                                        <thead class="table-light sticky-top"><tr class="column-headers"><th class="no-filter">UUID</th><th>PERIOD</th><th>UNIT</th><th>ACCT NBR</th><th>SETTLEMENT DATE</th><th>CHECK IN</th><th>CHECK OUT</th><th>SHORT NAME</th><th>REWARD ID</th><th>CERT NBR</th><th class="text-end" data-sum="true">AMT</th></tr></thead>
+                                        <tbody id="tbl-cl-red"><tr><td colspan="11" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr></tbody>
+                                        <tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9" class="text-end fw-bold">Subtotal:</td><td class="text-end fw-bold text-dark" data-col="10">$0.00</td></tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="pills-cleansed-reimb">
+                                <div class="section-header-gradient"><h6>Cleansed Reimbursements</h6></div>
+                                <div class="table-responsive table-container-custom" style="max-height: 450px;">
+                                    <table class="table table-hover table-sm table-striped table-filterable mb-0" id="table-cl-reimb">
+                                        <thead class="table-light sticky-top"><tr class="column-headers"><th class="no-filter">UUID</th><th>PERIOD</th><th>UNIT</th><th>INVOICE</th><th>INVOICE DATE</th><th>DATE</th><th>RES CERT</th><th>DET CERT</th><th>RTID</th><th>MEMBER NBR</th><th>GUEST NAME</th><th class="text-end" data-sum="true">REIMB</th><th class="text-end" data-sum="true">TAX</th><th class="text-end" data-sum="true">TOTAL</th><th class="text-center">AUDIT</th></tr></thead>
+                                        <tbody id="tbl-cl-reimb"><tr><td colspan="15" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr></tbody>
+                                        <tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9"></td><td data-col="10" class="text-end fw-bold">Subtotal:</td><td class="text-end fw-bold text-dark" data-col="11">$0.00</td><td class="text-end fw-bold text-dark" data-col="12">$0.00</td><td class="text-end fw-bold text-dark" data-col="13">$0.00</td><td data-col="14"></td></tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2 -->
+            <div class="tab-pane fade" id="tab2">
+                <div class="d-flex justify-content-between align-items-center mb-3"><span class="fs-5 fw-bold text-navy"><i class="fa-solid fa-sitemap text-info me-2"></i> Phase 2: Macro-Control Interfaces</span><button class="btn btn-sm btn-outline-primary btn-pill" onclick="expandAll()"><i class="fa-solid fa-expand me-1"></i> Expand All</button></div>
+                <ul class="nav nav-pills custom-pills mb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pills-hca">GL vs Redemptions</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pills-hcq">GL vs Reimbursements</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pills-manual">Manual GL Entries</button></li></ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="pills-hca"><div class="section-header-gradient"><h6>GL (HCA) vs Redemptions</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-sm accordion-table table-hover table-filterable mb-0" id="table-macro-hca"><thead class="table-light sticky-top"><tr class="column-headers"><th class="no-filter" style="width:50px;"></th><th>Period / Detail Level</th><th class="text-end" data-sum="true">GL Amount</th><th class="text-end" data-sum="true">SL Amount</th><th class="text-end" data-sum="true">Variance</th><th class="text-center">Status</th></tr></thead><tbody id="tbl-nested-hca"></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1" class="text-end fw-bold">Dynamic Macro Total:</td><td class="text-end fw-bold text-dark" data-col="2">$0.00</td><td class="text-end fw-bold text-dark" data-col="3">$0.00</td><td class="text-end fw-bold text-dark" data-col="4">$0.00</td><td data-col="5"></td></tr></tfoot></table></div></div>
+                    <div class="tab-pane fade" id="pills-hcq"><div class="section-header-gradient"><h6>GL (HCQ) vs Reimbursements</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-sm accordion-table table-hover table-filterable mb-0" id="table-macro-hcq"><thead class="table-light sticky-top"><tr class="column-headers"><th class="no-filter" style="width:50px;"></th><th>Period (Month)</th><th class="text-end" data-sum="true">GL Accrual</th><th class="text-end" data-sum="true">SL OFB Amount</th><th class="text-end" data-sum="true">Variance</th><th class="text-center">Status</th></tr></thead><tbody id="tbl-nested-hcq"></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1" class="text-end fw-bold">Dynamic Macro Total:</td><td class="text-end fw-bold text-dark" data-col="2">$0.00</td><td class="text-end fw-bold text-dark" data-col="3">$0.00</td><td class="text-end fw-bold text-dark" data-col="4">$0.00</td><td data-col="5"></td></tr></tfoot></table></div></div>
+                    <div class="tab-pane fade" id="pills-manual"><div class="section-header-gradient"><h6>Manual GL Entries</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-hover table-sm table-striped table-filterable mb-0" id="table-manual-gl"><thead class="table-light sticky-top"><tr class="column-headers"><th>Period</th><th>Unit</th><th>Journal ID</th><th>Date</th><th>Description</th><th class="text-end" data-sum="true">Amount</th><th>User</th><th>Source File</th></tr></thead><tbody id="tbl-manual-gl"></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4" class="text-end fw-bold">Dynamic Total:</td><td class="text-end fw-bold text-dark" data-col="5">$0.00</td><td data-col="6"></td><td data-col="7"></td></tr></tfoot></table></div></div>
+                </div>
+                <div class="card border-0 shadow-sm mt-4 card-custom"><div class="card-header bg-white py-3 border-bottom"><span class="fs-6 fw-bold text-navy"><i class="fa-solid fa-scale-balanced text-primary me-2"></i> SL to GL Matching Proof</span></div><div class="card-body bg-light p-4"><div class="row g-3 mb-3"><div class="col-md-3"><div class="p-3 bg-white rounded shadow-sm proof-box border-primary h-100"><p class="text-muted fw-bold mb-1" style="font-size: 0.75rem;">TOTAL GL AMOUNT</p><h4 class="fw-bold mb-0 text-primary" id="proof-gl-total">$0.00</h4></div></div><div class="col-md-3"><div class="p-3 bg-white rounded shadow-sm proof-box border-info h-100"><p class="text-muted fw-bold mb-1" style="font-size: 0.75rem;">SL: REDEMPTIONS</p><h4 class="fw-bold mb-0 text-info" id="proof-sl-red">$0.00</h4></div></div><div class="col-md-3"><div class="p-3 bg-white rounded shadow-sm proof-box border-success h-100"><p class="text-muted fw-bold mb-1" style="font-size: 0.75rem;">SL: REIMBURSEMENTS</p><h4 class="fw-bold mb-0 text-success" id="proof-sl-reimb">$0.00</h4></div></div><div class="col-md-3"><div class="p-3 bg-white rounded shadow-sm proof-box border-warning h-100"><p class="text-muted fw-bold mb-1" style="font-size: 0.75rem;">MANUAL GL ENTRIES</p><h4 class="fw-bold mb-0 text-warning" id="proof-manual">$0.00</h4></div></div></div><div id="proof-status-alert" class="p-3 rounded text-center fw-bold shadow-sm" style="background-color: #e9ecef; color: #6c757d;">Awaiting Pipeline Execution...</div></div></div>
+            </div>
+
+            <!-- TAB 3 -->
+            <div class="tab-pane fade" id="tab3">
+                <div class="d-flex justify-content-between align-items-center mb-3"><span class="fs-5 fw-bold text-navy"><i class="fa-solid fa-water text-primary me-2"></i> Phase 3: Operational Waterfall Engine</span><button class="btn btn-sm btn-extract-custom shadow-sm" onclick="exportPhase3All()"><i class="fa-solid fa-file-excel me-1"></i> Extract All</button></div>
+                <div class="bg-white rounded shadow-sm border mb-4 px-4 py-3 d-flex align-items-center flex-wrap gap-3"><span class="fw-bold small text-navy"><i class="fa-solid fa-table-columns text-primary me-1"></i> Column Visibility:</span><div id="phase3-column-toggler" class="flex-grow-1"><span class="text-muted small fst-italic">Run pipeline to load columns...</span></div></div>
+                <ul class="nav nav-pills custom-pills mb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-match-ok">Matched</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-match-rate">Rate Variance</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-match-open-red">Open Redemptions</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-match-open-reimb">Open Reimbursements</button></li></ul>
+                
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="pills-match-ok"><div class="section-header-gradient"><h6>Matched Items</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-wf-matched"><thead class="table-light sticky-top"><tr class="super-header bg-navy text-white text-center"><th colspan="11" class="border-end border-white" style="background-color: #1b365d;">REDEMPTION DATA</th><th colspan="15" class="border-end border-white" style="background-color: #112a46;">REIMBURSEMENT DATA</th><th colspan="8" style="background-color: #0b1f38;">MATCH WORKING</th></tr><tr class="column-headers"><th data-group="red">Red UUID</th><th data-group="red">Red Period</th><th data-group="red">Unit</th><th data-group="red">Acct Nbr</th><th data-group="red">Member Nbr</th><th data-group="red">Cert Nbr</th><th data-group="red">Guest Name</th><th data-group="red">Check In</th><th data-group="red">Check Out</th><th data-group="red">Settlement Date</th><th class="text-end border-end" data-sum="true" data-group="red">Redeem Amt</th><th data-group="reimb">Reimb UUID</th><th data-group="reimb">Reimb Period</th><th data-group="reimb">Unit</th><th data-group="reimb">Invoice Nbr</th><th data-group="reimb">Invoice Date</th><th data-group="reimb">Reimb Date</th><th data-group="reimb">Res Cert</th><th data-group="reimb">Det Cert</th><th data-group="reimb">RTID</th><th data-group="reimb">Member Nbr</th><th data-group="reimb">Guest Name</th><th class="text-end" data-sum="true" data-group="reimb">Reimb Amt</th><th class="text-end" data-sum="true" data-group="reimb">Tax Amt</th><th class="text-end" data-sum="true" data-group="reimb">Total Reimbursement</th><th class="border-end" data-group="reimb">Audit</th><th data-group="work">Tier</th><th data-group="work">Match ID</th><th class="text-end" data-sum="true" data-group="work">Variance</th><th data-group="work">Date Delta Status</th><th data-group="work">Root Cause</th><th data-group="work">Age Days</th><th data-group="work">Risk Category</th><th data-group="work">Flag Note</th></tr></thead><tbody id="tbl-wf-matched"><tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9" class="text-end fw-bold">Total:</td><td class="text-end fw-bold text-dark border-end" data-col="10">$0.00</td><td data-col="11"></td><td data-col="12"></td><td data-col="13"></td><td data-col="14"></td><td data-col="15"></td><td data-col="16"></td><td data-col="17"></td><td data-col="18"></td><td data-col="19"></td><td data-col="20"></td><td class="text-end fw-bold text-dark" data-col="21">$0.00</td><td class="text-end fw-bold text-dark" data-col="22">$0.00</td><td class="text-end fw-bold text-dark" data-col="23">$0.00</td><td class="border-end" data-col="24"></td><td data-col="25"></td><td data-col="26"></td><td class="text-end fw-bold text-dark" data-col="27">$0.00</td><td data-col="28"></td><td data-col="29"></td><td data-col="30"></td><td data-col="31"></td><td data-col="32"></td><td data-col="33"></td></tr></tfoot></table></div></div>
+                    <div class="tab-pane fade" id="pills-match-rate"><div class="section-header-gradient"><h6>Rate Variance Items</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-wf-rate"><thead class="table-light sticky-top"><tr class="super-header bg-navy text-white text-center"><th colspan="11" class="border-end border-white" style="background-color: #1b365d;">REDEMPTION DATA</th><th colspan="15" class="border-end border-white" style="background-color: #112a46;">REIMBURSEMENT DATA</th><th colspan="8" style="background-color: #0b1f38;">MATCH WORKING</th></tr><tr class="column-headers"><th data-group="red">Red UUID</th><th data-group="red">Red Period</th><th data-group="red">Unit</th><th data-group="red">Acct Nbr</th><th data-group="red">Member Nbr</th><th data-group="red">Cert Nbr</th><th data-group="red">Guest Name</th><th data-group="red">Check In</th><th data-group="red">Check Out</th><th data-group="red">Settlement Date</th><th class="text-end border-end" data-sum="true" data-group="red">Redeem Amt</th><th data-group="reimb">Reimb UUID</th><th data-group="reimb">Reimb Period</th><th data-group="reimb">Unit</th><th data-group="reimb">Invoice Nbr</th><th data-group="reimb">Invoice Date</th><th data-group="reimb">Reimb Date</th><th data-group="reimb">Res Cert</th><th data-group="reimb">Det Cert</th><th data-group="reimb">RTID</th><th data-group="reimb">Member Nbr</th><th data-group="reimb">Guest Name</th><th class="text-end" data-sum="true" data-group="reimb">Reimb Amt</th><th class="text-end" data-sum="true" data-group="reimb">Tax Amt</th><th class="text-end" data-sum="true" data-group="reimb">Total Reimbursement</th><th class="border-end" data-group="reimb">Audit</th><th data-group="work">Tier</th><th data-group="work">Match ID</th><th class="text-end" data-sum="true" data-group="work">Variance</th><th data-group="work">Date Delta Status</th><th data-group="work">Root Cause</th><th data-group="work">Age Days</th><th data-group="work">Risk Category</th><th data-group="work">Flag Note</th></tr></thead><tbody id="tbl-wf-rate"><tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9" class="text-end fw-bold">Total:</td><td class="text-end fw-bold text-dark border-end" data-col="10">$0.00</td><td data-col="11"></td><td data-col="12"></td><td data-col="13"></td><td data-col="14"></td><td data-col="15"></td><td data-col="16"></td><td data-col="17"></td><td data-col="18"></td><td data-col="19"></td><td data-col="20"></td><td class="text-end fw-bold text-dark" data-col="21">$0.00</td><td class="text-end fw-bold text-dark" data-col="22">$0.00</td><td class="text-end fw-bold text-dark" data-col="23">$0.00</td><td class="border-end" data-col="24"></td><td data-col="25"></td><td data-col="26"></td><td class="text-end fw-bold text-danger" data-col="27">$0.00</td><td data-col="28"></td><td data-col="29"></td><td data-col="30"></td><td data-col="31"></td><td data-col="32"></td><td data-col="33"></td></tr></tfoot></table></div></div>
+                    <div class="tab-pane fade" id="pills-match-open-red"><div class="section-header-gradient"><h6>Open Redemptions</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-wf-open-red"><thead class="table-light sticky-top"><tr class="super-header bg-navy text-white text-center"><th colspan="11" class="border-end border-white" style="background-color: #1b365d;">REDEMPTION DATA</th><th colspan="15" class="border-end border-white" style="background-color: #112a46;">REIMBURSEMENT DATA</th><th colspan="8" style="background-color: #0b1f38;">MATCH WORKING</th></tr><tr class="column-headers"><th data-group="red">Red UUID</th><th data-group="red">Red Period</th><th data-group="red">Unit</th><th data-group="red">Acct Nbr</th><th data-group="red">Member Nbr</th><th data-group="red">Cert Nbr</th><th data-group="red">Guest Name</th><th data-group="red">Check In</th><th data-group="red">Check Out</th><th data-group="red">Settlement Date</th><th class="text-end border-end" data-sum="true" data-group="red">Redeem Amt</th><th data-group="reimb">Reimb UUID</th><th data-group="reimb">Reimb Period</th><th data-group="reimb">Unit</th><th data-group="reimb">Invoice Nbr</th><th data-group="reimb">Invoice Date</th><th data-group="reimb">Reimb Date</th><th data-group="reimb">Res Cert</th><th data-group="reimb">Det Cert</th><th data-group="reimb">RTID</th><th data-group="reimb">Member Nbr</th><th data-group="reimb">Guest Name</th><th class="text-end" data-sum="true" data-group="reimb">Reimb Amt</th><th class="text-end" data-sum="true" data-group="reimb">Tax Amt</th><th class="text-end" data-sum="true" data-group="reimb">Total Reimbursement</th><th class="border-end" data-group="reimb">Audit</th><th data-group="work">Tier</th><th data-group="work">Match ID</th><th class="text-end" data-sum="true" data-group="work">Variance</th><th data-group="work">Date Delta Status</th><th data-group="work">Root Cause</th><th data-group="work">Age Days</th><th data-group="work">Risk Category</th><th data-group="work">Flag Note</th></tr></thead><tbody id="tbl-wf-open-red"><tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9" class="text-end fw-bold">Total:</td><td class="text-end fw-bold text-danger border-end" data-col="10">$0.00</td><td data-col="11"></td><td data-col="12"></td><td data-col="13"></td><td data-col="14"></td><td data-col="15"></td><td data-col="16"></td><td data-col="17"></td><td data-col="18"></td><td data-col="19"></td><td data-col="20"></td><td class="text-end fw-bold text-dark" data-col="21">$0.00</td><td class="text-end fw-bold text-dark" data-col="22">$0.00</td><td class="text-end fw-bold text-dark" data-col="23">$0.00</td><td class="border-end" data-col="24"></td><td data-col="25"></td><td data-col="26"></td><td class="text-end fw-bold text-dark" data-col="27">$0.00</td><td data-col="28"></td><td data-col="29"></td><td data-col="30"></td><td data-col="31"></td><td data-col="32"></td><td data-col="33"></td></tr></tfoot></table></div></div>
+                    <div class="tab-pane fade" id="pills-match-open-reimb"><div class="section-header-gradient"><h6>Open Reimbursements</h6></div><div class="table-responsive table-container-custom" style="max-height: 450px;"><table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-wf-open-reimb"><thead class="table-light sticky-top"><tr class="super-header bg-navy text-white text-center"><th colspan="11" class="border-end border-white" style="background-color: #1b365d;">REDEMPTION DATA</th><th colspan="15" class="border-end border-white" style="background-color: #112a46;">REIMBURSEMENT DATA</th><th colspan="8" style="background-color: #0b1f38;">MATCH WORKING</th></tr><tr class="column-headers"><th data-group="red">Red UUID</th><th data-group="red">Red Period</th><th data-group="red">Unit</th><th data-group="red">Acct Nbr</th><th data-group="red">Member Nbr</th><th data-group="red">Cert Nbr</th><th data-group="red">Guest Name</th><th data-group="red">Check In</th><th data-group="red">Check Out</th><th data-group="red">Settlement Date</th><th class="text-end border-end" data-sum="true" data-group="red">Redeem Amt</th><th data-group="reimb">Reimb UUID</th><th data-group="reimb">Reimb Period</th><th data-group="reimb">Unit</th><th data-group="reimb">Invoice Nbr</th><th data-group="reimb">Invoice Date</th><th data-group="reimb">Reimb Date</th><th data-group="reimb">Res Cert</th><th data-group="reimb">Det Cert</th><th data-group="reimb">RTID</th><th data-group="reimb">Member Nbr</th><th data-group="reimb">Guest Name</th><th class="text-end" data-sum="true" data-group="reimb">Reimb Amt</th><th class="text-end" data-sum="true" data-group="reimb">Tax Amt</th><th class="text-end" data-sum="true" data-group="reimb">Total Reimbursement</th><th class="border-end" data-group="reimb">Audit</th><th data-group="work">Tier</th><th data-group="work">Match ID</th><th class="text-end" data-sum="true" data-group="work">Variance</th><th data-group="work">Date Delta Status</th><th data-group="work">Root Cause</th><th data-group="work">Age Days</th><th data-group="work">Risk Category</th><th data-group="work">Flag Note</th></tr></thead><tbody id="tbl-wf-open-reimb"><tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9"></td><td class="text-end border-end" data-col="10"></td><td data-col="11"></td><td data-col="12"></td><td data-col="13"></td><td data-col="14"></td><td data-col="15"></td><td data-col="16"></td><td data-col="17"></td><td data-col="18"></td><td data-col="19"></td><td data-col="20" class="text-end fw-bold">Total:</td><td class="text-end fw-bold text-dark" data-col="21">$0.00</td><td class="text-end fw-bold text-dark" data-col="22">$0.00</td><td class="text-end fw-bold text-danger" data-col="23">$0.00</td><td class="border-end" data-col="24"></td><td data-col="25"></td><td data-col="26"></td><td class="text-end fw-bold text-dark" data-col="27">$0.00</td><td data-col="28"></td><td data-col="29"></td><td data-col="30"></td><td data-col="31"></td><td data-col="32"></td><td data-col="33"></td></tr></tfoot></table></div></div>
+                </div>
+            </div>
+
+            <!-- TAB 4 -->
+            <div class="tab-pane fade" id="tab4">
+                <div class="d-flex justify-content-between align-items-center mb-3"><span class="fs-5 fw-bold text-navy"><i class="fa-solid fa-link me-2 text-primary"></i> Phase 4: Manual Match Repository</span><button class="btn btn-sm btn-outline-danger btn-pill shadow-sm" onclick="performUnmatch()"><i class="fa-solid fa-unlink me-1"></i> Unmatch Selected</button></div>
+                
+                <div class="section-header-gradient mt-4"><h6>GL Line Items</h6></div><div class="table-responsive table-container-custom" style="max-height: 250px;"><table class="table table-sm table-striped table-hover mb-0"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"></th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Period">Period</th><th data-colname="Unit">Unit</th><th data-colname="Journal Date">Journal Date</th><th data-colname="Journal ID">Journal ID</th><th data-colname="Description">Description</th><th data-colname="User">User</th><th class="text-end" data-sum="true" data-colname="Amount">Amount</th></tr></thead><tbody id="tbl-manual-match-gl"><tr><td colspan="10" class="text-center text-muted py-3">No manual matches yet...</td></tr></tbody></table></div>
+                <div class="section-header-gradient mt-4"><h6>Rate Variance Line Items</h6></div><div class="table-responsive table-container-custom" style="max-height: 250px;"><table class="table table-sm table-striped table-hover mb-0"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"></th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Red Period">Red Period</th><th data-colname="Reimb Period">Reimb Period</th><th data-colname="Unit">Unit</th><th data-colname="Acct Nbr">Acct Nbr</th><th data-colname="Member Nbr">Member Nbr</th><th data-colname="Cert Nbr">Cert Nbr</th><th data-colname="Guest Name">Guest Name</th><th data-colname="Check In" class="d-none">Check In</th><th data-colname="Check Out" class="d-none">Check Out</th><th data-colname="Settlement Date">Settlement Date</th><th class="text-end" data-sum="true" data-colname="Redeem Amt">Redeem Amt</th><th data-colname="Invoice Nbr">Invoice Nbr</th><th data-colname="Invoice Date">Invoice Date</th><th data-colname="RTID" class="d-none">RTID</th><th class="text-end d-none" data-sum="true" data-colname="Reimb Amt">Reimb Amt</th><th class="text-end d-none" data-sum="true" data-colname="Tax Amt">Tax Amt</th><th class="text-end" data-sum="true" data-colname="Total Reimbursement">Total Reimbursement</th><th class="text-end" data-sum="true" data-colname="Variance">Variance</th></tr></thead><tbody id="tbl-manual-match-rate"><tr><td colspan="21" class="text-center text-muted py-3">No manual matches yet...</td></tr></tbody></table></div>
+                <div class="section-header-gradient mt-4"><h6>Redemption Line Items</h6></div><div class="table-responsive table-container-custom" style="max-height: 250px;"><table class="table table-sm table-striped table-hover mb-0"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"></th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Red UUID" class="d-none">Red UUID</th><th data-colname="Period">Period</th><th data-colname="Unit">Unit</th><th data-colname="Acct Nbr">Acct Nbr</th><th data-colname="Member Nbr">Member Nbr</th><th data-colname="Cert Nbr">Cert Nbr</th><th data-colname="Guest Name">Guest Name</th><th data-colname="Check In" class="d-none">Check In</th><th data-colname="Check Out" class="d-none">Check Out</th><th data-colname="Settlement Date">Settlement Date</th><th class="text-end" data-sum="true" data-colname="Redeem Amt">Redeem Amt</th></tr></thead><tbody id="tbl-manual-match-red"><tr><td colspan="14" class="text-center text-muted py-3">No manual matches yet...</td></tr></tbody></table></div>
+                <div class="section-header-gradient mt-4"><h6>Reimbursement Line Items</h6></div><div class="table-responsive table-container-custom" style="max-height: 250px;"><table class="table table-sm table-striped table-hover mb-0"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"></th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Reimb UUID" class="d-none">Reimb UUID</th><th data-colname="Period">Period</th><th data-colname="Unit">Unit</th><th data-colname="Invoice Nbr">Invoice Nbr</th><th data-colname="Invoice Date">Invoice Date</th><th data-colname="Reimb Date" class="d-none">Reimb Date</th><th data-colname="Res Cert">Res Cert</th><th data-colname="Det Cert">Det Cert</th><th data-colname="RTID" class="d-none">RTID</th><th data-colname="Member Nbr">Member Nbr</th><th data-colname="Guest Name">Guest Name</th><th class="text-end d-none" data-sum="true" data-colname="Reimb Amt">Reimb Amt</th><th class="text-end d-none" data-sum="true" data-colname="Tax Amt">Tax Amt</th><th class="text-end" data-sum="true" data-colname="Total Reimbursement">Total Reimbursement</th></tr></thead><tbody id="tbl-manual-match-reimb"><tr><td colspan="17" class="text-center text-muted py-3">No manual matches yet...</td></tr></tbody></table></div>
+            </div>
+
+            <!-- =========================================================
+                 TAB 5: MODERN EXECUTIVE FINANCE DASHBOARD
+                 ========================================================= -->
+            <div class="tab-pane fade" id="tab5">
+                <!-- Sticky Controls -->
+                <div class="d-flex justify-content-between align-items-center mb-4 exec-filter-bar">
+                    <h5 class="fw-bold text-navy m-0"><i class="fa-solid fa-chart-pie me-2 text-gold"></i> Executive Finance Dashboard</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary btn-pill" onclick="executePipeline()"><i class="fa-solid fa-rotate-right me-1"></i> Refresh Data</button>
+                        <button class="btn btn-sm btn-primary btn-pill shadow-sm" onclick="window.print()"><i class="fa-solid fa-file-pdf me-1"></i> Export Report</button>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: Executive Scorecards -->
+                <h6 class="fw-bold text-navy mb-3"><i class="fa-solid fa-building-columns me-2"></i> Executive Summary of Reward Account</h6>
+                <div class="dashboard-grid">
+                    <!-- Total Redemption -->
+                    <div class="glass-card p-4 position-relative">
+                        <div class="kpi-label text-primary">Total Redemption</div>
+                        <div class="kpi-value text-dark" id="exec-exp-red">$0.00</div>
+                        <div class="kpi-subtext text-muted"><i class="fa-solid fa-arrow-right-to-bracket text-primary"></i> Reward Receivables</div>
+                        
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981; margin-right: 6px;"></div>
+                                <span class="text-muted fw-bold" style="font-size: 0.75rem;" id="exec-red-matched">$0.00 Matched</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; margin-right: 6px;"></div>
+                                <span class="text-muted fw-bold" style="font-size: 0.75rem;" id="exec-red-unmatched">$0.00 Unmatched</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Reimb Received -->
+                    <div class="glass-card p-4 position-relative">
+                        <div class="kpi-label text-success">Reimb Received</div>
+                        <div class="kpi-value text-dark" id="exec-rec-reimb">$0.00</div>
+                        <div class="kpi-subtext text-muted"><i class="fa-solid fa-money-bill-wave text-success"></i> Cash Inflow</div>
+                        
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981; margin-right: 6px;"></div>
+                                <span class="text-muted fw-bold" style="font-size: 0.75rem;" id="exec-reimb-matched">$0.00 Matched</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; margin-right: 6px;"></div>
+                                <span class="text-muted fw-bold" style="font-size: 0.75rem;" id="exec-reimb-unmatched">$0.00 Unmatched</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Recovery Rate -->
+                    <div class="glass-card p-4 exec-gradient-bg">
+                        <div class="kpi-label text-white">Recovery Rate</div>
+                        <div class="kpi-value text-white" id="exec-rec-pct">0.0%</div>
+                        <div class="kpi-subtext text-white-50"><i class="fa-solid fa-bullseye text-gold"></i> Match Reimbursement / Total Redemptions</div>
+                    </div>
+                    <!-- Outstanding AR -->
+                    <div class="glass-card p-4 border-start border-4 border-danger">
+                        <div class="kpi-label text-danger">Outstanding AR</div>
+                        <div class="kpi-value text-dark" id="exec-out-ar">$0.00</div>
+                        <div class="kpi-subtext text-muted"><i class="fa-solid fa-triangle-exclamation text-danger"></i> Collection Risk</div>
+                    </div>
+                    <!-- Rate Leakage % -->
+                    <div class="glass-card p-4 border-start border-4 border-warning">
+                        <div class="kpi-label text-warning" style="color: #fd7e14 !important;">Rate Leakage %</div>
+                        <div class="kpi-value text-dark" id="exec-rate-leak">0.0%</div>
+                        <div class="kpi-subtext text-muted d-flex flex-column align-items-start gap-1">
+                            <div><i class="fa-solid fa-filter-circle-dollar text-warning"></i> Permanent Revenue Loss</div>
+                            <div class="fw-bold text-dark" id="exec-rate-leak-amt">$0.00</div>
+                        </div>
+                    </div>
+                    <!-- Unapplied Cash -->
+                    <div class="glass-card p-4 border-start border-4 border-info">
+                        <div class="kpi-label text-info">Unapplied Cash</div>
+                        <div class="kpi-value text-dark" id="exec-unapp-cash">$0.00</div>
+                        <div class="kpi-subtext text-muted"><i class="fa-solid fa-file-circle-question text-info"></i> Operational Processing Issue</div>
+                    </div>
+                </div>
+
+                <!-- SECTION 11: Extra Finance KPI Cards -->
+                <div class="dashboard-grid mb-5" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                    <div class="glass-card p-3 text-center">
+                        <div class="kpi-label text-muted">First Pass Yield (FPY)</div>
+                        <h4 class="fw-bold text-navy m-0" id="exec-fpy">0%</h4>
+                    </div>
+                    <div class="glass-card p-3 text-center">
+                        <div class="kpi-label text-muted">Auto Match %</div>
+                        <h4 class="fw-bold text-navy m-0" id="exec-auto-match">0%</h4>
+                    </div>
+                    <div class="glass-card p-3 text-center">
+                        <div class="kpi-label text-muted">Manual Match %</div>
+                        <h4 class="fw-bold text-navy m-0" id="exec-man-match">0%</h4>
+                    </div>
+                    <div class="glass-card p-3 text-center">
+                        <div class="kpi-label text-muted">Current Mo. Recovery</div>
+                        <h4 class="fw-bold text-navy m-0" id="exec-cm-rec">0%</h4>
+                    </div>
+                    <div class="glass-card p-3 text-center">
+                        <div class="kpi-label text-muted">Prior Mo. Recovery</div>
+                        <h4 class="fw-bold text-navy m-0" id="exec-pm-rec">0%</h4>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- SECTION 3: Executive Waterfall -->
+                    <div class="col-lg-12">
+                        <div class="glass-card p-4 h-100">
+                            <h6 class="fw-bold text-navy mb-3"><i class="fa-solid fa-water text-primary me-2"></i> Revenue Realization Waterfall</h6>
+                            <div class="chart-container"><canvas id="execWaterfallChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- Risk Matrix (Monthly) -->
+                    <div class="col-lg-12">
+                        <div class="glass-card p-4 h-100">
+                            <h6 class="fw-bold text-navy mb-3"><i class="fa-solid fa-chart-column text-warning me-2"></i> Risk Matrix (Aging of Outstanding Redemption)</h6>
+                            <div class="chart-container"><canvas id="execRiskMonthly"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- Weekly Trend Analysis -->
+                    <div class="col-lg-12">
+                        <div class="glass-card p-4 h-100">
+                            <h6 class="fw-bold text-navy mb-3"><i class="fa-solid fa-chart-line text-info me-2"></i> Weekly Trend Analysis (Outstanding Redemptions)</h6>
+                            <div class="chart-container"><canvas id="execRiskWeekly"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4 mb-4">
+                    <!-- Executive Insights -->
+                    <div class="col-lg-12">
+                        <div class="glass-card p-4 h-100 exec-gradient-bg-purple">
+                            <h6 class="fw-bold text-white mb-3"><i class="fa-solid fa-lightbulb text-gold me-2"></i> Executive Insights</h6>
+                            <div id="exec-ai-commentary" class="mt-3">
+                                <p class="text-white-50">Generate business commentary automatically post-pipeline execution.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ========================================================= -->
+
+            <!-- TAB 6 -->
+            <div class="tab-pane fade" id="tab6">
+                <div class="card border-0 shadow-lg mb-4 card-custom">
+                    <div class="card-header bg-navy text-white d-flex justify-content-between align-items-center py-3">
+                        <span class="fs-5"><i class="fa-solid fa-check-double me-2"></i> Phase 5: Reconciliation</span>
+                        <button class="btn btn-sm btn-light text-navy btn-pill fw-bold" onclick="handleTab6Export()"><i class="fa-solid fa-download me-1"></i> Extract to Excel</button>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="nav nav-pills custom-pills mb-4 border-bottom pb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-recon-summary"><i class="fa-solid fa-file-invoice me-1"></i> Summary Sheet</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-recon-detail"><i class="fa-solid fa-list me-1"></i> Line-Item Detail</button></li></ul>
+                        <div class="tab-content">
+                            <!-- SUMMARY -->
+                            <div class="tab-pane fade show active" id="pills-recon-summary">
+                                <div class="d-flex justify-content-end mb-3">
+                                    <button class="btn btn-sm text-white shadow-sm btn-pill fw-bold" onclick="exportSummaryToPDF()" style="background-color: #A71930; border-color: #A71930;">
+                                        <i class="fa-solid fa-file-pdf me-1"></i> Export Summary to PDF
+                                    </button>
+                                </div>
+                                <div id="recon-summary-content">
+                                    <div class="recon-sheet-container">
+                                        <div class="recon-sheet-title">ABC Services</div>
+                                        <table class="recon-metadata">
+                                            <tr><td class="meta-label">Property Name:</td><td class="meta-value" id="propertyName" contenteditable="true"></td></tr>
+                                            <tr><td class="meta-label">Operating Unit:</td><td class="meta-value" id="operatingUnit" contenteditable="true"></td></tr>
+                                            <tr><td class="meta-label">Account Name:</td><td class="meta-value" id="accountName" contenteditable="true"></td></tr>
+                                            <tr><td class="meta-label">Account Number:</td><td class="meta-value" id="accountNumber" contenteditable="true"></td></tr>
+                                            <tr><td class="meta-label">Month & Period:</td><td class="meta-value" id="period" contenteditable="true"></td></tr>
+                                            <tr><td class="meta-label">Prepared by:</td><td class="meta-value" id="preparedBy" contenteditable="true"></td></tr>
+                                            <tr><td class="meta-label">Reviewed by:</td><td class="meta-value" id="reviewedBy" contenteditable="true"></td></tr>
+                                        </table>
+                                        <table class="recon-table">
+                                            <tbody>
+                                                <tr class="total-row"><td class="desc-col">Balance in account at period end</td><td class="val-col" id="balancePeriodEnd"></td></tr>
+                                                <tr class="section-hdr"><td colspan="2">Sub ledger & Supporting Documentation Detail:</td></tr>
+                                                <tr class="data-row"><td class="desc-col ps-4">Balance Detail</td><td class="val-col" id="balanceDetail"></td></tr>
+                                                <tr class="section-hdr"><td colspan="2">Reconciling Items:</td></tr>
+                                                <tr class="data-row"><td class="desc-col ps-4">Net Incorrect Balance</td><td class="val-col" id="netIncorrectBalance"></td></tr>
+                                                <tr class="data-row"><td class="desc-col ps-4">Timing</td><td class="val-col" id="timingAmount"></td></tr>
+                                                <tr class="data-row"><td class="desc-col ps-4">Other Potential Exposure</td><td class="val-col" id="otherExposure"></td></tr>
+                                                <tr class="data-row"><td class="desc-col ps-4">Unreconciled</td><td class="val-col" id="unreconciledAmount"></td></tr>
+                                                <tr class="total-row"><td class="desc-col">Total Reconciling Items</td><td class="val-col" id="totalReconciling"></td></tr>
+                                                <tr class="total-row border-top-0" id="crossCheckRow"><td class="desc-col text-end border-0 pe-4 text-muted" id="crossCheckLabel" style="font-weight: 800; font-size: 1.1rem; letter-spacing: 0.5px;">CROSSCK &gt;&gt;</td><td class="val-col border-dark" id="crossCheck"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- DETAILS -->
+                            <div class="tab-pane fade" id="pills-recon-detail">
+                                <div class="d-flex justify-content-end align-items-center mb-3">
+                                    <div class="d-flex align-items-center"><span class="badge bg-secondary me-3 fs-6 px-4 py-2 shadow-sm" id="selected-match-total">Selected: $0.00</span><button class="btn btn-sm btn-outline-secondary btn-pill fw-bold shadow-sm px-3" id="btn-manual-match" onclick="performManualMatch()" disabled><i class="fa-solid fa-link me-1"></i> Match Selected</button></div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-4 section-header-gradient"><h6>GL Line Items</h6><div class="dropdown"><button class="btn btn-sm btn-columns dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"><i class="fa-solid fa-table-columns me-1"></i> Columns</button><div class="dropdown-menu p-3 shadow-lg" id="dd-cols-table-recon-detail-gl"></div></div></div>
+                                <div class="table-responsive table-container-custom" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-recon-detail-gl"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"><input class="form-check-input cursor-pointer border-secondary" type="checkbox" onchange="toggleAllRecon(this, 'tbl-recon-detail-gl')"></th><th data-colname="Classification">Classification</th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Period">Period</th><th data-colname="Unit">Unit</th><th data-colname="Journal Date">Journal Date</th><th data-colname="Journal ID">Journal ID</th><th data-colname="Description">Description</th><th data-colname="User">User</th><th class="text-end" data-sum="true" data-colname="Amount">Amount</th></tr></thead><tbody id="tbl-recon-detail-gl"><tr><td colspan="11" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9" class="text-end fw-bold text-secondary">GL Subtotal:</td><td data-col="10" class="text-end fw-bold text-dark" id="recon-detail-total-gl">$0.00</td></tr></tfoot></table>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 section-header-gradient"><h6>Rate Variance Line Items</h6><div class="dropdown"><button class="btn btn-sm btn-columns dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"><i class="fa-solid fa-table-columns me-1"></i> Columns</button><div class="dropdown-menu p-3 shadow-lg" id="dd-cols-table-recon-detail-rate"></div></div></div>
+                                <div class="table-responsive table-container-custom" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-recon-detail-rate"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"><input class="form-check-input cursor-pointer border-secondary" type="checkbox" onchange="toggleAllRecon(this, 'tbl-recon-detail-rate')"></th><th data-colname="Classification">Classification</th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Red Period">Red Period</th><th data-colname="Reimb Period">Reimb Period</th><th data-colname="Unit">Unit</th><th data-colname="Acct Nbr">Acct Nbr</th><th data-colname="Member Nbr">Member Nbr</th><th data-colname="Cert Nbr">Cert Nbr</th><th data-colname="Guest Name">Guest Name</th><th data-colname="Check In" class="d-none">Check In</th><th data-colname="Check Out" class="d-none">Check Out</th><th data-colname="Settlement Date">Settlement Date</th><th class="text-end" data-sum="true" data-colname="Redeem Amt">Redeem Amt</th><th data-colname="Invoice Nbr">Invoice Nbr</th><th data-colname="Invoice Date">Invoice Date</th><th data-colname="RTID" class="d-none">RTID</th><th class="text-end d-none" data-sum="true" data-colname="Reimb Amt">Reimb Amt</th><th class="text-end d-none" data-sum="true" data-colname="Tax Amt">Tax Amt</th><th class="text-end" data-sum="true" data-colname="Total Reimbursement">Total Reimbursement</th><th class="text-end" data-sum="true" data-colname="Variance">Variance</th></tr></thead><tbody id="tbl-recon-detail-rate"><tr><td colspan="22" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9"></td><td data-col="10"></td><td data-col="11" class="d-none"></td><td data-col="12" class="d-none"></td><td data-col="13" class="text-end fw-bold text-secondary">Rate Variance Subtotal:</td><td data-col="14" class="text-end fw-bold text-dark" id="recon-detail-total-red-rate">$0.00</td><td data-col="15"></td><td data-col="16"></td><td data-col="17" class="d-none"></td><td data-col="18" class="text-end fw-bold text-muted d-none">$0.00</td><td data-col="19" class="text-end fw-bold text-muted d-none">$0.00</td><td data-col="20" class="text-end fw-bold text-dark" id="recon-detail-total-reimb-rate">$0.00</td><td data-col="21" class="text-end fw-bold text-dark" id="recon-detail-total-rate">$0.00</td></tr></tfoot></table>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 section-header-gradient"><h6>Redemption Line Items</h6><div class="dropdown"><button class="btn btn-sm btn-columns dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"><i class="fa-solid fa-table-columns me-1"></i> Columns</button><div class="dropdown-menu p-3 shadow-lg" id="dd-cols-table-recon-detail-red"></div></div></div>
+                                <div class="table-responsive table-container-custom" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-recon-detail-red"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"><input class="form-check-input cursor-pointer border-secondary" type="checkbox" onchange="toggleAllRecon(this, 'tbl-recon-detail-red')"></th><th data-colname="Classification">Classification</th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Red UUID" class="d-none">Red UUID</th><th data-colname="Period">Period</th><th data-colname="Unit">Unit</th><th data-colname="Acct Nbr">Acct Nbr</th><th data-colname="Member Nbr">Member Nbr</th><th data-colname="Cert Nbr">Cert Nbr</th><th data-colname="Guest Name">Guest Name</th><th data-colname="Check In" class="d-none">Check In</th><th data-colname="Check Out" class="d-none">Check Out</th><th data-colname="Settlement Date">Settlement Date</th><th class="text-end" data-sum="true" data-colname="Redeem Amt">Redeem Amt</th></tr></thead><tbody id="tbl-recon-detail-red"><tr><td colspan="15" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4" class="d-none"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9"></td><td data-col="10"></td><td data-col="11" class="d-none"></td><td data-col="12" class="d-none"></td><td data-col="13" class="text-end fw-bold text-secondary">Redemption Subtotal:</td><td data-col="14" class="text-end fw-bold text-dark" id="recon-detail-total-red">$0.00</td></tr></tfoot></table>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 section-header-gradient"><h6>Reimbursement Line Items</h6><div class="dropdown"><button class="btn btn-sm btn-columns dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"><i class="fa-solid fa-table-columns me-1"></i> Columns</button><div class="dropdown-menu p-3 shadow-lg" id="dd-cols-table-recon-detail-reimb"></div></div></div>
+                                <div class="table-responsive table-container-custom" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped table-hover table-filterable mb-0" id="table-recon-detail-reimb"><thead class="table-light sticky-top"><tr class="column-headers"><th style="width: 40px;" class="text-center no-filter"><input class="form-check-input cursor-pointer border-secondary" type="checkbox" onchange="toggleAllRecon(this, 'tbl-recon-detail-reimb')"></th><th data-colname="Classification">Classification</th><th data-colname="Match ID">Match ID</th><th data-colname="Source Type">Source Type</th><th data-colname="Reimb UUID" class="d-none">Reimb UUID</th><th data-colname="Period">Period</th><th data-colname="Unit">Unit</th><th data-colname="Invoice Nbr">Invoice Nbr</th><th data-colname="Invoice Date">Invoice Date</th><th data-colname="Reimb Date" class="d-none">Reimb Date</th><th data-colname="Res Cert">Res Cert</th><th data-colname="Det Cert">Det Cert</th><th data-colname="RTID" class="d-none">RTID</th><th data-colname="Member Nbr">Member Nbr</th><th data-colname="Guest Name">Guest Name</th><th class="text-end d-none" data-sum="true" data-colname="Reimb Amt">Reimb Amt</th><th class="text-end d-none" data-sum="true" data-colname="Tax Amt">Tax Amt</th><th class="text-end" data-sum="true" data-colname="Total Reimbursement">Total Reimbursement</th></tr></thead><tbody id="tbl-recon-detail-reimb"><tr><td colspan="18" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr></tbody><tfoot class="table-light sticky-bottom shadow-sm d-none"><tr><td data-col="0"></td><td data-col="1"></td><td data-col="2"></td><td data-col="3"></td><td data-col="4" class="d-none"></td><td data-col="5"></td><td data-col="6"></td><td data-col="7"></td><td data-col="8"></td><td data-col="9" class="d-none"></td><td data-col="10"></td><td data-col="11"></td><td data-col="12" class="d-none"></td><td data-col="13"></td><td data-col="14" class="text-end fw-bold text-secondary">Reimb Subtotal:</td><td data-col="15" class="text-end fw-bold text-muted d-none"></td><td data-col="16" class="text-end fw-bold text-muted d-none"></td><td data-col="17" class="text-end fw-bold text-dark" id="recon-detail-total-reimb">$0.00</td></tr></tfoot></table>
+                                </div>
+                                <div class="table-responsive combined-total-wrapper"><table class="table mb-0"><tfoot><tr><td class="text-end fw-bold py-3" style="width: 75%;">Combined Line-Item Details Total:</td><td class="text-end fw-bold fs-5 py-3" id="recon-detail-total" style="width: 25%;">$0.00</td></tr></tfoot></table></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripting -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // =======================================================================
+        // PHASE 1-4 EXACT ORIGINAL JAVASCRIPT FUNCTIONS (BUG FIXED)
+        // =======================================================================
+        const $id = id => document.getElementById(id);
+        const $$ = sel => document.querySelectorAll(sel);
+        
+        window.fmt = function(v) {
+            let num = safeFloat(v);
+            return num < 0 ? '-$' + Math.abs(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '$' + num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        };
+
+        window.classificationOverrides = {};
+
+        function showToast(msg, type='success') {
+            const t = document.createElement('div');
+            t.className = `p-3 rounded shadow-lg text-sm fw-bold mb-2 text-white animate-fade-in ${type==='error'?'bg-danger':'bg-success'}`;
+            t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-triangle-exclamation':'fa-check-circle'} me-2"></i>${msg}`;
+            $id('toast-container').appendChild(t); setTimeout(() => t.remove(), 4000);
+        }
+
+        function safeFloat(val) {
+            if(!val && val !== 0) return 0;
+            if(typeof val === 'number') return val;
+            let str = String(val).replace(/[^\d.\-()]/g, '');
+            if(str.startsWith('(') && str.endsWith(')')) str = '-' + str.slice(1, -1);
+            let n = parseFloat(str); return isNaN(n) ? 0 : n;
+        }
+
+        function getVal(row, possibleKeys) {
+            if (!row) return "";
+            for (let k of possibleKeys) { if (row[k] !== undefined && row[k] !== "") return row[k]; }
+            let rKeys = Object.keys(row);
+            for (let pk of possibleKeys) {
+                let pkc = pk.toLowerCase().replace(/[^a-z0-9]/g, '');
+                for (let rk of rKeys) { if (rk.toLowerCase().replace(/[^a-z0-9]/g, '').includes(pkc)) return row[rk]; }
+            } return "";
+        }
+
+        function parseExcelDate(val) {
+            if(!val) return '';
+            if(typeof val === 'number') { return new Date(Math.round((val - 25569) * 86400 * 1000)).toISOString().slice(0, 10); }
+            let str = String(val).trim();
+            if(str.match(/^\d{4}-\d{2}-\d{2}/)) return str.slice(0, 10);
+            let p = str.split(/[\/\-]/);
+            if (p.length === 3 && p[2].length === 4) {
+                let p0 = parseInt(p[0]), p1 = parseInt(p[1]);
+                if (p1 > 12) return `${p[2]}-${String(p0).padStart(2,'0')}-${String(p1).padStart(2,'0')}`;
+                return `${p[2]}-${String(p1).padStart(2,'0')}-${String(p0).padStart(2,'0')}`;
+            }
+            let d = new Date(str); if(!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            return str.slice(0, 10);
+        }
+
+        function getMonthStr(dateStr) { return dateStr ? dateStr.substring(0, 7) : ""; }
+        function normalizeName(nameRaw) {
+            let clean = String(nameRaw || '').replace(/\b(MR|MRS|MS|DR|PROF|SR|JR|MISS)\.?\s*/gi, '').trim().replace(/[\s,\-\\]+/g, '/').replace(/\/+/g, '/');
+            let parts = clean.split('/');
+            if (parts.length >= 2) return `${parts[1].trim()} ${parts[0].trim().split(' ')[0]}`.toUpperCase();
+            return clean.replace('/', ' ').toUpperCase();
+        }
+        function genUUID(prefix) { return prefix + '_' + Math.random().toString(36).substr(2, 9).toUpperCase(); }
+
+        window.rawGL = []; window.rawRed = []; window.rawReimb = []; window.rawCert = []; window.rawOpenItemsAoA = [];
+        window.filteredGL = []; window.filteredRed = []; window.filteredReimb = []; window.filteredCert = [];
+        window.cleansedRed = []; window.cleansedReimb = []; window.matchedData = []; window.rateVariances = []; 
+        window.openRed = []; window.openReimb = []; window.manualGL = []; window.priorManualGL = []; window.priorRateVariances = [];
+        window.unmatchCache = {}; let manualMatchRowCounter = 0; window.glTotalAmt = 0;
+
+        window.clearApplicationData = function() {
+            window.rawGL = []; window.rawRed = []; window.rawReimb = []; window.rawCert = []; window.rawOpenItemsAoA = [];
+            window.filteredGL = []; window.filteredRed = []; window.filteredReimb = []; window.filteredCert = [];
+            window.cleansedRed = []; window.cleansedReimb = []; window.matchedData = []; window.rateVariances = []; 
+            window.openRed = []; window.openReimb = []; window.manualGL = []; window.priorManualGL = []; window.priorRateVariances = [];
+            window.unmatchCache = {}; 
+            manualMatchRowCounter = 0; 
+            window.glTotalAmt = 0;
+
+            $$('.custom-file-input').forEach(input => input.value = '');
+            
+            if($id('tbl-cl-red')) $id('tbl-cl-red').innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr>';
+            if($id('tbl-cl-reimb')) $id('tbl-cl-reimb').innerHTML = '<tr><td colspan="15" class="text-center text-muted py-4">Awaiting pipeline execution...</td></tr>';
+            if($id('tbl-nested-hca')) $id('tbl-nested-hca').innerHTML = '';
+            if($id('tbl-nested-hcq')) $id('tbl-nested-hcq').innerHTML = '';
+            if($id('tbl-manual-gl')) $id('tbl-manual-gl').innerHTML = '';
+            if($id('tbl-wf-matched')) $id('tbl-wf-matched').innerHTML = '<tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr>';
+            if($id('tbl-wf-rate')) $id('tbl-wf-rate').innerHTML = '<tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr>';
+            if($id('tbl-wf-open-red')) $id('tbl-wf-open-red').innerHTML = '<tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr>';
+            if($id('tbl-wf-open-reimb')) $id('tbl-wf-open-reimb').innerHTML = '<tr><td colspan="34" class="text-center text-muted py-4">Awaiting pipeline...</td></tr>';
+            
+            if($id('tbl-manual-match-gl')) $id('tbl-manual-match-gl').innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">No manual matches yet...</td></tr>';
+            if($id('tbl-manual-match-rate')) $id('tbl-manual-match-rate').innerHTML = '<tr><td colspan="21" class="text-center text-muted py-3">No manual matches yet...</td></tr>';
+            if($id('tbl-manual-match-red')) $id('tbl-manual-match-red').innerHTML = '<tr><td colspan="14" class="text-center text-muted py-3">No manual matches yet...</td></tr>';
+            if($id('tbl-manual-match-reimb')) $id('tbl-manual-match-reimb').innerHTML = '<tr><td colspan="17" class="text-center text-muted py-3">No manual matches yet...</td></tr>';
+
+            if($id('proof-gl-total')) $id('proof-gl-total').innerText = '$0.00';
+            if($id('proof-sl-red')) $id('proof-sl-red').innerText = '$0.00';
+            if($id('proof-sl-reimb')) $id('proof-sl-reimb').innerText = '$0.00';
+            if($id('proof-manual')) $id('proof-manual').innerText = '$0.00';
+            
+            let statusEl = $id('proof-status-alert');
+            if(statusEl) {
+                statusEl.className = "p-3 rounded text-center fw-bold shadow-sm";
+                statusEl.style.backgroundColor = "#e9ecef";
+                statusEl.style.color = "#6c757d";
+                statusEl.innerHTML = "Awaiting Pipeline Execution...";
+            }
+
+            updateDynamicSummary();
+            if(window.updateDashboardMetrics) window.updateDashboardMetrics();
+            if(window.updateDashboardCharts) window.updateDashboardCharts();
+            
+            $$('.table-filterable').forEach(table => { calcTableTotals(table); });
+            showToast("Application data cleared successfully.", "success");
+        };
+
+        let savedCols = localStorage.getItem('recon_col_state');
+        if (savedCols) {
+            try { let parsed = JSON.parse(savedCols); window.hiddenColsState = { 'table-wf-matched': new Set(parsed['table-wf-matched'] || []), 'table-wf-rate': new Set(parsed['table-wf-rate'] || []), 'table-wf-open-red': new Set(parsed['table-wf-open-red'] || []), 'table-wf-open-reimb': new Set(parsed['table-wf-open-reimb'] || []) }; } 
+            catch(e) { window.hiddenColsState = { 'table-wf-matched': new Set(), 'table-wf-rate': new Set(), 'table-wf-open-red': new Set(), 'table-wf-open-reimb': new Set() }; }
+        } else { window.hiddenColsState = { 'table-wf-matched': new Set(), 'table-wf-rate': new Set(), 'table-wf-open-red': new Set(), 'table-wf-open-reimb': new Set() }; }
+
+        window.saveColumnPreferences = function() { localStorage.setItem('recon_col_state', JSON.stringify(Object.fromEntries(Object.entries(window.hiddenColsState).map(([k, v]) => [k, Array.from(v)])))); showToast("Column preferences saved successfully."); };
+
+        /* ======================== TAB 2 TOGGLERS ======================== */
+        window.toggleAccordion = function(level, id, iconId) {
+            let icon = $id(iconId);
+            if (icon) icon.classList.toggle('rotate-90');
+            if (level === 1) {
+                $$('.hca-m-' + id + '.row-level-2').forEach(row => {
+                    row.classList.toggle('d-none');
+                    if (row.classList.contains('d-none')) {
+                        let match = row.className.match(/hca-d-([^\s]+)/);
+                        if (match) {
+                            let sd = match[1];
+                            $$('.hca-d-' + sd + '.row-level-3').forEach(r3 => r3.classList.add('d-none'));
+                            let childIcon = $id('icon-hca-d-' + sd);
+                            if(childIcon) childIcon.classList.remove('rotate-90');
+                        }
+                    }
+                });
+            } else if (level === 2) {
+                $$('.hca-d-' + id + '.row-level-3').forEach(row => {
+                    row.classList.toggle('d-none');
+                });
+            }
+        };
+
+        window.expandAll = function() {
+            $$('.icon-transition').forEach(icon => icon.classList.add('rotate-90'));
+            $$('.row-level-2, .row-level-3').forEach(row => row.classList.remove('d-none'));
+        };
+
+        function populateMonthFilter() {
+            let months = new Set();
+            if (window.rawGL) window.rawGL.forEach(r => { let m = getMonthStr(parseExcelDate(getVal(r, ['Journal Date', 'Date Time', 'Date']))); if(m) months.add(m); });
+            if (window.rawRed) window.rawRed.forEach(r => { let m = getMonthStr(parseExcelDate(getVal(r, ['Settlement Date']))); if(m) months.add(m); });
+            if (window.rawReimb) window.rawReimb.forEach(r => { let m = getMonthStr(parseExcelDate(getVal(r, ['Invoice Date']))); if(m) months.add(m); });
+            let filterSelect = $id('month-filter');
+            if (filterSelect) { let currentVal = filterSelect.value; filterSelect.innerHTML = '<option value="ALL">All Months</option>'; Array.from(months).sort().reverse().forEach(m => { filterSelect.innerHTML += `<option value="${m}">${m}</option>`; }); filterSelect.value = currentVal || 'ALL'; }
+        }
+
+        function calcTableTotals(table) {
+            if (!table) return; let tfoot = table.querySelector('tfoot'); if (!tfoot) return;
+            let sums = []; let theadCells = table.querySelectorAll('thead tr.column-headers th'); if (theadCells.length === 0) theadCells = table.querySelectorAll('thead tr:first-child th');
+            theadCells.forEach((th, idx) => { if (th.getAttribute('data-sum') === 'true') sums[idx] = 0; });
+            
+            let rowsToSum = table.classList.contains('accordion-table') 
+                ? table.querySelectorAll('tbody tr.row-level-1:not(.filtered-out)') 
+                : table.querySelectorAll('tbody tr:not(.filtered-out)');
+                
+            rowsToSum.forEach(row => {
+                if(row.cells.length < 5) return;
+                Array.from(row.cells).forEach((cell, idx) => { if (sums[idx] !== undefined) sums[idx] += safeFloat(cell.textContent); });
+            });
+            let tfootCells = tfoot.querySelectorAll('td');
+            tfootCells.forEach((cell) => { let colIdx = cell.getAttribute('data-col'); if (colIdx !== null && sums[colIdx] !== undefined) { cell.textContent = window.fmt ? window.fmt(sums[colIdx]) : sums[colIdx]; } });
+            tfoot.classList.remove('d-none');
+        }
+
+        function initFiltersAndTotals() { $$('.table-filterable').forEach(table => { calcTableTotals(table); }); }
+
+        window.buildClassDropdown = function(defaultClass, rowId, amt) {
+            let finalClass = window.classificationOverrides[rowId] || defaultClass;
+            const options = ["Balance Detail", "Net Incorrect Balance", "Timing", "Other Potential Exposure", "Unreconciled"];
+            let optsHtml = options.map(o => `<option value="${o}" ${o === finalClass ? 'selected' : ''}>${o}</option>`).join('');
+            return `<select class="form-select form-select-sm recon-class-dd shadow-sm" style="width: 170px; font-size: 0.75rem;" data-rowid="${rowId}" data-amt="${amt}" onchange="handleClassChange(this)">${optsHtml}</select>`;
+        };
+
+        window.handleClassChange = function(sel) { window.classificationOverrides[sel.getAttribute('data-rowid')] = sel.value; recalcReconSummary(); };
+
+        window.recalcReconSummary = function() {
+            let t = { "Balance Detail": 0, "Net Incorrect Balance": 0, "Timing": 0, "Other Potential Exposure": 0, "Unreconciled": 0 };
+            
+            $$('#pills-recon-detail .recon-class-dd').forEach(dd => { 
+                let tr = dd.closest('tr'); 
+                if (tr && !tr.classList.contains('filtered-out')) { 
+                    t[dd.value] += (parseFloat(dd.getAttribute('data-amt')) || 0); 
+                } 
+            });
+            
+            let bd = t["Balance Detail"]; let recon = t["Net Incorrect Balance"] + t["Timing"] + t["Other Potential Exposure"] + t["Unreconciled"];
+            let bpe = bd + recon; let cross = (window.glTotalAmt || 0) - bpe;
+            if($id('balanceDetail')) $id('balanceDetail').innerText = fmt(bd);
+            if($id('netIncorrectBalance')) $id('netIncorrectBalance').innerText = fmt(t["Net Incorrect Balance"]);
+            if($id('timingAmount')) $id('timingAmount').innerText = fmt(t["Timing"]);
+            if($id('otherExposure')) $id('otherExposure').innerText = fmt(t["Other Potential Exposure"]);
+            if($id('unreconciledAmount')) $id('unreconciledAmount').innerText = fmt(t["Unreconciled"]);
+            if($id('totalReconciling')) $id('totalReconciling').innerText = fmt(recon);
+            if($id('balancePeriodEnd')) $id('balancePeriodEnd').innerText = fmt(bpe);
+            
+            let crossLabel = $id('crossCheckLabel');
+            if($id('crossCheck')) { 
+                $id('crossCheck').innerText = fmt(cross); 
+                if (Math.abs(cross) > 0.05) {
+                    $id('crossCheck').className = 'val-col text-danger fw-bold';
+                    if (crossLabel) crossLabel.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> UNRECONCILED';
+                    if (crossLabel) crossLabel.className = 'desc-col text-end border-0 pe-4 text-danger fw-bold fs-5';
+                } else {
+                    $id('crossCheck').className = 'val-col text-success fw-bold';
+                    if (crossLabel) crossLabel.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i> RECONCILED';
+                    if (crossLabel) crossLabel.className = 'desc-col text-end border-0 pe-4 text-success fw-bold fs-5';
+                }
+            }
+        };
+
+        function getColIndex(selector, headerText, groupName) {
+            let ths = $$(selector + ' thead tr.column-headers th'); if(ths.length === 0) ths = $$(selector + ' thead tr:first-child th');
+            for(let i=0; i<ths.length; i++) { if(ths[i].textContent.trim().toLowerCase() === headerText.toLowerCase()) { if (groupName) { if (ths[i].dataset.group === groupName) return i; } else { return i; } } } return -1;
+        }
+
+        function updateDynamicSummary() {
+            let detailHtmlGL = ""; let detailHtmlRate = ""; let detailHtmlRed = ""; let detailHtmlReimb = "";
+            let mSum = 0; let rvSum = 0; let orSum = 0; let oreSum = 0;
+            
+            let mAmtIdx = getColIndex('#table-manual-gl', 'Amount'); let mJrnIdx = getColIndex('#table-manual-gl', 'Journal ID'); let mDateIdx = getColIndex('#table-manual-gl', 'Date'); let mDescIdx = getColIndex('#table-manual-gl', 'Description'); let mUserIdx = getColIndex('#table-manual-gl', 'User'); let mUnitIdx = getColIndex('#table-manual-gl', 'Unit'); let mPeriodIdx = getColIndex('#table-manual-gl', 'Period'); let mMatchIdIdx = getColIndex('#table-manual-gl', 'Match ID');
+            if (mAmtIdx !== -1) {
+                $$('#table-manual-gl tbody tr:not(.filtered-out)').forEach(r => {
+                    if(r.cells.length < 5) return;
+                    let id = 'recon-' + (manualMatchRowCounter++); r.setAttribute('data-recon-id', id);
+                    let amt = safeFloat(r.cells[mAmtIdx].textContent); mSum += amt;
+                    let pr = mPeriodIdx !== -1 ? r.cells[mPeriodIdx].textContent.trim() : 'Current Month';
+                    detailHtmlGL += `<tr><td class="text-center"><input class="form-check-input border-secondary manual-match-cb cursor-pointer" type="checkbox" value="${id}" onchange="updateSelectedMatchTotal()"></td><td>${buildClassDropdown("Net Incorrect Balance", id, amt)}</td><td><span class="badge bg-secondary">${mMatchIdIdx !== -1 ? r.cells[mMatchIdIdx].textContent.trim() : ''}</span></td><td><span class="badge bg-secondary">GL</span></td><td><span class="badge ${pr==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${pr}</span></td><td>${mUnitIdx !== -1 ? r.cells[mUnitIdx].textContent : ''}</td><td>${mDateIdx !== -1 ? r.cells[mDateIdx].textContent : ''}</td><td>${mJrnIdx !== -1 ? r.cells[mJrnIdx].textContent : ''}</td><td>${mDescIdx !== -1 ? r.cells[mDescIdx].textContent : ''}</td><td>${mUserIdx !== -1 ? r.cells[mUserIdx].textContent : ''}</td><td class="text-end fw-bold line-amt ${amt < 0 ? 'text-danger' : 'text-success'}">${fmt(amt)}</td></tr>`;
+                });
+            }
+
+            let rvAmtIdx = getColIndex('#table-wf-rate', 'Variance', 'work'); let rvRedAmtIdx = getColIndex('#table-wf-rate', 'Redeem Amt', 'red'); let rvTotalAmtIdx = getColIndex('#table-wf-rate', 'Total Reimbursement', 'reimb'); let rvRedPeriodIdx = getColIndex('#table-wf-rate', 'Red Period', 'red'); let rvReimbPeriodIdx = getColIndex('#table-wf-rate', 'Reimb Period', 'reimb'); let rvMatchIdIdx = getColIndex('#table-wf-rate', 'Match ID', 'work'); let rvUnitIdx = getColIndex('#table-wf-rate', 'Unit', 'red'); let rvAcctIdx = getColIndex('#table-wf-rate', 'Acct Nbr', 'red'); let rvMemIdx = getColIndex('#table-wf-rate', 'Member Nbr', 'red'); let rvCertIdx = getColIndex('#table-wf-rate', 'Cert Nbr', 'red'); let rvNameIdx = getColIndex('#table-wf-rate', 'Guest Name', 'red'); let rvDateIdx = getColIndex('#table-wf-rate', 'Settlement Date', 'red'); let rvInvIdx = getColIndex('#table-wf-rate', 'Invoice Nbr', 'reimb'); let rvInvDtIdx = getColIndex('#table-wf-rate', 'Invoice Date', 'reimb');
+            // Retrieving indexes for newly mapped hidden columns
+            let rvCheckInIdx = getColIndex('#table-wf-rate', 'Check In', 'red');
+            let rvCheckOutIdx = getColIndex('#table-wf-rate', 'Check Out', 'red');
+            let rvRtidIdx = getColIndex('#table-wf-rate', 'RTID', 'reimb');
+            let rvReimbBaseIdx = getColIndex('#table-wf-rate', 'Reimb Amt', 'reimb');
+            let rvTaxIdx = getColIndex('#table-wf-rate', 'Tax Amt', 'reimb');
+
+            let rvRedSum = 0; let rvReimbSum = 0;
+            if (rvAmtIdx !== -1) {
+                $$('#table-wf-rate tbody tr:not(.filtered-out)').forEach(r => {
+                    if(r.cells.length < 5) return;
+                    let id = 'recon-' + (manualMatchRowCounter++); r.setAttribute('data-recon-id', id);
+                    let amt = safeFloat(r.cells[rvAmtIdx].textContent); rvSum += amt;
+                    let rAmt = safeFloat(r.cells[rvRedAmtIdx]?.textContent); rvRedSum += rAmt; let rmAmt = safeFloat(r.cells[rvTotalAmtIdx]?.textContent); rvReimbSum += rmAmt;
+                    let pr = rvRedPeriodIdx !== -1 ? r.cells[rvRedPeriodIdx].textContent.trim() : 'Current Month';
+                    
+                    let chkIn = rvCheckInIdx !== -1 ? r.cells[rvCheckInIdx].textContent : '';
+                    let chkOut = rvCheckOutIdx !== -1 ? r.cells[rvCheckOutIdx].textContent : '';
+                    let rtid = rvRtidIdx !== -1 ? r.cells[rvRtidIdx].textContent : '';
+                    let rBase = rvReimbBaseIdx !== -1 ? safeFloat(r.cells[rvReimbBaseIdx].textContent) : 0;
+                    let rTax = rvTaxIdx !== -1 ? safeFloat(r.cells[rvTaxIdx].textContent) : 0;
+
+                    detailHtmlRate += `<tr><td class="text-center"><input class="form-check-input border-secondary manual-match-cb cursor-pointer" type="checkbox" value="${id}" onchange="updateSelectedMatchTotal()"></td><td>${buildClassDropdown(pr === 'Current Month' ? "Timing" : "Net Incorrect Balance", id, amt)}</td><td><span class="badge bg-secondary">${rvMatchIdIdx !== -1 ? r.cells[rvMatchIdIdx].textContent.trim() : ''}</span></td><td><span class="badge bg-primary">RATE VARIANCE</span></td><td><span class="badge ${pr==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${pr}</span></td><td><span class="badge ${rvReimbPeriodIdx !== -1 ? (r.cells[rvReimbPeriodIdx].textContent.trim()==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border') : ''}">${rvReimbPeriodIdx !== -1 ? r.cells[rvReimbPeriodIdx].textContent.trim() : ''}</span></td><td>${rvUnitIdx !== -1 ? r.cells[rvUnitIdx].textContent : ''}</td><td>${rvAcctIdx !== -1 ? r.cells[rvAcctIdx].textContent : ''}</td><td>${rvMemIdx !== -1 ? r.cells[rvMemIdx].textContent : ''}</td><td>${rvCertIdx !== -1 ? r.cells[rvCertIdx].textContent : ''}</td><td>${rvNameIdx !== -1 ? r.cells[rvNameIdx].textContent : ''}</td><td class="d-none">${chkIn}</td><td class="d-none">${chkOut}</td><td>${rvDateIdx !== -1 ? r.cells[rvDateIdx].textContent : ''}</td><td class="text-end">${fmt(rAmt)}</td><td>${rvInvIdx !== -1 ? r.cells[rvInvIdx].textContent : ''}</td><td>${rvInvDtIdx !== -1 ? r.cells[rvInvDtIdx].textContent : ''}</td><td class="d-none">${rtid}</td><td class="text-end d-none">${fmt(rBase)}</td><td class="text-end d-none">${fmt(rTax)}</td><td class="text-end">${fmt(rmAmt)}</td><td class="text-end fw-bold line-amt ${amt < 0 ? 'text-danger' : 'text-success'}">${fmt(amt)}</td></tr>`;
+                });
+            }
+
+            let orAmtIdx = getColIndex('#table-wf-open-red', 'Redeem Amt', 'red'); let orPeriodIdx = getColIndex('#table-wf-open-red', 'Red Period', 'red'); let orMatchIdIdx = getColIndex('#table-wf-open-red', 'Match ID', 'work'); let orUnitIdx = getColIndex('#table-wf-open-red', 'Unit', 'red'); let orRefIdx = getColIndex('#table-wf-open-red', 'Acct Nbr', 'red'); let orMemIdx = getColIndex('#table-wf-open-red', 'Member Nbr', 'red'); let orCertIdx = getColIndex('#table-wf-open-red', 'Cert Nbr', 'red'); let orNameIdx = getColIndex('#table-wf-open-red', 'Guest Name', 'red'); let orDateIdx = getColIndex('#table-wf-open-red', 'Settlement Date', 'red');
+            let orUuidIdx = getColIndex('#table-wf-open-red', 'Red UUID', 'red');
+            let orCheckInIdx = getColIndex('#table-wf-open-red', 'Check In', 'red');
+            let orCheckOutIdx = getColIndex('#table-wf-open-red', 'Check Out', 'red');
+
+            if (orAmtIdx !== -1) {
+                $$('#table-wf-open-red tbody tr:not(.filtered-out)').forEach(r => {
+                    if(r.cells.length < 5) return;
+                    let id = 'recon-' + (manualMatchRowCounter++); r.setAttribute('data-recon-id', id);
+                    let amt = safeFloat(r.cells[orAmtIdx].textContent); orSum += amt;
+                    let pr = orPeriodIdx !== -1 ? r.cells[orPeriodIdx].textContent.trim() : 'Current Month';
+
+                    let rUuid = orUuidIdx !== -1 ? r.cells[orUuidIdx].textContent : '';
+                    let chkIn = orCheckInIdx !== -1 ? r.cells[orCheckInIdx].textContent : '';
+                    let chkOut = orCheckOutIdx !== -1 ? r.cells[orCheckOutIdx].textContent : '';
+
+                    detailHtmlRed += `<tr><td class="text-center"><input class="form-check-input border-secondary manual-match-cb cursor-pointer" type="checkbox" value="${id}" onchange="updateSelectedMatchTotal()"></td><td>${buildClassDropdown(pr === 'Current Month' ? "Balance Detail" : "Other Potential Exposure", id, amt)}</td><td><span class="badge bg-secondary">${orMatchIdIdx !== -1 ? r.cells[orMatchIdIdx].textContent.trim() : ''}</span></td><td><span class="badge" style="background-color:#6f42c1;">REDEMPTION</span></td><td class="d-none">${rUuid}</td><td><span class="badge ${pr==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${pr}</span></td><td>${orUnitIdx !== -1 ? r.cells[orUnitIdx].textContent : ''}</td><td>${orRefIdx !== -1 ? r.cells[orRefIdx].textContent : ''}</td><td>${orMemIdx !== -1 ? r.cells[orMemIdx].textContent : ''}</td><td>${orCertIdx !== -1 ? r.cells[orCertIdx].textContent : ''}</td><td>${orNameIdx !== -1 ? r.cells[orNameIdx].textContent : ''}</td><td class="d-none">${chkIn}</td><td class="d-none">${chkOut}</td><td>${orDateIdx !== -1 ? r.cells[orDateIdx].textContent : ''}</td><td class="text-end fw-bold line-amt ${amt < 0 ? 'text-danger' : 'text-success'}">${fmt(amt)}</td></tr>`;
+                });
+            }
+
+            let oreAmtIdx = getColIndex('#table-wf-open-reimb', 'Total Reimbursement', 'reimb'); let orePeriodIdx = getColIndex('#table-wf-open-reimb', 'Reimb Period', 'reimb'); let oreMatchIdIdx = getColIndex('#table-wf-open-reimb', 'Match ID', 'work'); let oreUnitIdx = getColIndex('#table-wf-open-reimb', 'Unit', 'reimb'); let oreRefIdx = getColIndex('#table-wf-open-reimb', 'Invoice Nbr', 'reimb'); let oreDateIdx = getColIndex('#table-wf-open-reimb', 'Invoice Date', 'reimb'); let oreCertIdx = getColIndex('#table-wf-open-reimb', 'Res Cert', 'reimb'); let oreDetCertIdx = getColIndex('#table-wf-open-reimb', 'Det Cert', 'reimb'); let oreMemIdx = getColIndex('#table-wf-open-reimb', 'Member Nbr', 'reimb'); let oreNameIdx = getColIndex('#table-wf-open-reimb', 'Guest Name', 'reimb');
+            let oreUuidIdx = getColIndex('#table-wf-open-reimb', 'Reimb UUID', 'reimb');
+            let oreReimbDateIdx = getColIndex('#table-wf-open-reimb', 'Reimb Date', 'reimb');
+            let oreRtidIdx = getColIndex('#table-wf-open-reimb', 'RTID', 'reimb');
+            let oreReimbBaseIdx = getColIndex('#table-wf-open-reimb', 'Reimb Amt', 'reimb');
+            let oreTaxIdx = getColIndex('#table-wf-open-reimb', 'Tax Amt', 'reimb');
+
+            if (oreAmtIdx !== -1) {
+                $$('#table-wf-open-reimb tbody tr:not(.filtered-out)').forEach(r => {
+                    if(r.cells.length < 5) return;
+                    let id = 'recon-' + (manualMatchRowCounter++); r.setAttribute('data-recon-id', id);
+                    let amt = safeFloat(r.cells[oreAmtIdx].textContent); oreSum += amt;
+                    let pr = orePeriodIdx !== -1 ? r.cells[orePeriodIdx].textContent.trim() : 'Current Month';
+
+                    let rUuid = oreUuidIdx !== -1 ? r.cells[oreUuidIdx].textContent : '';
+                    let rDt = oreReimbDateIdx !== -1 ? r.cells[oreReimbDateIdx].textContent : '';
+                    let rtid = oreRtidIdx !== -1 ? r.cells[oreRtidIdx].textContent : '';
+                    let rBase = oreReimbBaseIdx !== -1 ? safeFloat(r.cells[oreReimbBaseIdx].textContent) : 0;
+                    let rTax = oreTaxIdx !== -1 ? safeFloat(r.cells[oreTaxIdx].textContent) : 0;
+
+                    detailHtmlReimb += `<tr><td class="text-center"><input class="form-check-input border-secondary manual-match-cb cursor-pointer" type="checkbox" value="${id}" onchange="updateSelectedMatchTotal()"></td><td>${buildClassDropdown("Net Incorrect Balance", id, amt)}</td><td><span class="badge bg-secondary">${oreMatchIdIdx !== -1 ? r.cells[oreMatchIdIdx].textContent.trim() : ''}</span></td><td><span class="badge bg-info text-dark">REIMBURSEMENT</span></td><td class="d-none">${rUuid}</td><td><span class="badge ${pr==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${pr}</span></td><td>${oreUnitIdx !== -1 ? r.cells[oreUnitIdx].textContent : ''}</td><td>${oreRefIdx !== -1 ? r.cells[oreRefIdx].textContent : ''}</td><td>${oreDateIdx !== -1 ? r.cells[oreDateIdx].textContent : ''}</td><td class="d-none">${rDt}</td><td>${oreCertIdx !== -1 ? r.cells[oreCertIdx].textContent : ''}</td><td>${oreDetCertIdx !== -1 ? r.cells[oreDetCertIdx].textContent : ''}</td><td class="d-none">${rtid}</td><td>${oreMemIdx !== -1 ? r.cells[oreMemIdx].textContent : ''}</td><td>${oreNameIdx !== -1 ? r.cells[oreNameIdx].textContent : ''}</td><td class="text-end d-none">${fmt(rBase)}</td><td class="text-end d-none">${fmt(rTax)}</td><td class="text-end fw-bold line-amt ${amt < 0 ? 'text-danger' : 'text-success'}">${fmt(amt)}</td></tr>`;
+                });
+            }
+            
+            let totalAdj = mSum + rvSum + orSum + oreSum;
+            
+            if ($id('tbl-recon-detail-gl')) { $id('tbl-recon-detail-gl').innerHTML = detailHtmlGL || '<tr><td colspan="11" class="text-center text-muted py-4">No line items to report.</td></tr>'; $id('recon-detail-total-gl').innerText = fmt(mSum); }
+            if ($id('tbl-recon-detail-rate')) { $id('tbl-recon-detail-rate').innerHTML = detailHtmlRate || '<tr><td colspan="22" class="text-center text-muted py-4">No line items to report.</td></tr>'; $id('recon-detail-total-rate').innerText = fmt(rvSum); }
+            if ($id('recon-detail-total-red-rate')) $id('recon-detail-total-red-rate').innerText = fmt(rvRedSum);
+            if ($id('recon-detail-total-reimb-rate')) $id('recon-detail-total-reimb-rate').innerText = fmt(rvReimbSum);
+            if ($id('tbl-recon-detail-red')) { $id('tbl-recon-detail-red').innerHTML = detailHtmlRed || '<tr><td colspan="15" class="text-center text-muted py-4">No line items to report.</td></tr>'; $id('recon-detail-total-red').innerText = fmt(orSum); }
+            if ($id('tbl-recon-detail-reimb')) { $id('tbl-recon-detail-reimb').innerHTML = detailHtmlReimb || '<tr><td colspan="18" class="text-center text-muted py-4">No line items to report.</td></tr>'; $id('recon-detail-total-reimb').innerText = fmt(oreSum); }
+
+            if ($id('recon-detail-total')) { $id('recon-detail-total').innerText = fmt(totalAdj); $id('recon-detail-total').className = totalAdj < 0 ? "text-end fw-bold fs-5 text-danger" : "text-end fw-bold fs-5 text-white"; }
+
+            ['table-recon-detail-gl', 'table-recon-detail-rate', 'table-recon-detail-red', 'table-recon-detail-reimb'].forEach(t => { let tbl = $id(t); if (tbl) calcTableTotals(tbl); if(window.applyTab6ColToggle) window.applyTab6ColToggle(t); });
+            
+            let unitElement = $id('unit-filter'); let monthElement = $id('month-filter');
+            if ($id('propertyName')) $id('propertyName').innerText = (unitElement && unitElement.value !== "ALL") ? unitElement.value : "All Properties";
+            if ($id('operatingUnit')) $id('operatingUnit').innerText = (unitElement && unitElement.value !== "ALL") ? unitElement.value : "All Units";
+            
+            if ($id('accountName')) $id('accountName').innerText = "Reward Redemption";
+            
+            if ($id('accountNumber')) $id('accountNumber').innerText = "GL-2900-501";
+            if ($id('period')) $id('period').innerText = (monthElement && monthElement.value !== "ALL") ? monthElement.value : "All Months";
+            
+            if ($id('preparedBy')) $id('preparedBy').innerText = "";
+            if ($id('reviewedBy')) $id('reviewedBy').innerText = "";
+            
+            recalcReconSummary();
+            
+            // Connect strictly to our new Executive Dashboard
+            if(window.updateDashboardMetrics) window.updateDashboardMetrics();
+            if(window.updateDashboardCharts) window.updateDashboardCharts();
+        }
+
+        /* ======================== TAB EXPORT ENGINES ======================== */
+        window.handleTab6Export = function() {
+            let activeTab = document.querySelector('#tab6 .nav-pills .nav-link.active');
+            if (activeTab && activeTab.getAttribute('data-bs-target') === '#pills-recon-summary') {
+                exportSummaryToExcel();
+            } else {
+                exportLineItemDetails();
+            }
+        };
+
+        window.exportSummaryToExcel = function() {
+            let aoa = [];
+            aoa.push(["FINANCIAL RECONCILIATION REPORT"]);
+            aoa.push(["ABC Services"]);
+            aoa.push([]);
+            
+            aoa.push(["Property Name:", $id('propertyName') ? $id('propertyName').innerText : '']);
+            aoa.push(["Operating Unit:", $id('operatingUnit') ? $id('operatingUnit').innerText : '']);
+            aoa.push(["Account Name:", $id('accountName') ? $id('accountName').innerText : '']);
+            aoa.push(["Account Number:", $id('accountNumber') ? $id('accountNumber').innerText : '']);
+            aoa.push(["Month & Period:", $id('period') ? $id('period').innerText : '']);
+            aoa.push(["Prepared by:", $id('preparedBy') ? $id('preparedBy').innerText : '']);
+            aoa.push(["Reviewed by:", $id('reviewedBy') ? $id('reviewedBy').innerText : '']);
+            aoa.push([]);
+            
+            aoa.push(["Balance in account at period end", "", $id('balancePeriodEnd') ? $id('balancePeriodEnd').innerText : '']);
+            aoa.push([]);
+            
+            aoa.push(["SUB LEDGER & SUPPORTING DOCUMENTATION DETAIL:"]);
+            aoa.push(["Balance Detail", "", $id('balanceDetail') ? $id('balanceDetail').innerText : '']);
+            aoa.push([]);
+            
+            aoa.push(["RECONCILING ITEMS:"]);
+            aoa.push(["Net Incorrect Balance", "", $id('netIncorrectBalance') ? $id('netIncorrectBalance').innerText : '']);
+            aoa.push(["Timing", "", $id('timingAmount') ? $id('timingAmount').innerText : '']);
+            aoa.push(["Other Potential Exposure", "", $id('otherExposure') ? $id('otherExposure').innerText : '']);
+            aoa.push(["Unreconciled", "", $id('unreconciledAmount') ? $id('unreconciledAmount').innerText : '']);
+            aoa.push([]);
+            
+            aoa.push(["Total Reconciling Items", "", $id('totalReconciling') ? $id('totalReconciling').innerText : '']);
+            aoa.push([]);
+            
+            let crossLabel = $id('crossCheckLabel') ? $id('crossCheckLabel').innerText.replace(/[^A-Z]/g, '') : 'CROSSCHECK';
+            aoa.push([crossLabel, "", $id('crossCheck') ? $id('crossCheck').innerText : '']);
+            
+            let ws = XLSX.utils.aoa_to_sheet(aoa); 
+            let wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Summary_Sheet"); 
+            XLSX.writeFile(wb, `Recon_Summary_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast("Summary Sheet exported to Excel.");
+        };
+
+        window.exportSummaryToPDF = function() {
+            let element = document.querySelector('.recon-sheet-container');
+            if (!element) return;
+            
+            let opt = {
+              margin:       0.3,
+              filename:     `Recon_Summary_${new Date().toISOString().slice(0,10)}.pdf`,
+              image:        { type: 'jpeg', quality: 1 },
+              html2canvas:  { scale: 2, useCORS: true, windowWidth: 1000 },
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            
+            showToast("Generating Summary PDF... Please wait.", "success");
+            html2pdf().set(opt).from(element).save().then(() => {
+                showToast("PDF Downloaded Successfully.");
+            }).catch(err => {
+                showToast("Error generating PDF.", "error");
+            });
+        };
+
+        window.exportTableToExcel = function(tableId, sheetName, fileName) {
+            let table = $id(tableId); if (!table) return;
+            let aoa = [];
+            let thead = table.querySelector('thead tr.column-headers') || table.querySelector('thead tr:last-child');
+            let visibleCols = [];
+            if (thead) { 
+                let headerRow = []; 
+                Array.from(thead.cells).forEach((th, idx) => { 
+                    if (!th.classList.contains('d-none') && !th.classList.contains('filtered-out')) { 
+                        headerRow.push(th.textContent.trim()); 
+                        visibleCols.push(idx); 
+                    } 
+                }); 
+                aoa.push(headerRow); 
+            }
+            let tbody = table.querySelector('tbody');
+            if (tbody) {
+                Array.from(tbody.rows).forEach(tr => {
+                    if (!tr.classList.contains('filtered-out') && !tr.classList.contains('d-none') && tr.style.display !== 'none') {
+                        if(tr.cells.length === 1 && tr.cells[0].hasAttribute('colspan')) return;
+                        let rowData = []; 
+                        Array.from(tr.cells).forEach((td, idx) => { 
+                            if (visibleCols.includes(idx)) { 
+                                let val = td.textContent.trim(); 
+                                let selectEl = td.querySelector('select'); 
+                                if (selectEl) { val = selectEl.value; } 
+                                else if (val.includes('$')) { val = safeFloat(val); } 
+                                rowData.push(val); 
+                            } 
+                        });
+                        if (rowData.length > 0) aoa.push(rowData);
+                    }
+                });
+            }
+            let tfoot = table.querySelector('tfoot');
+            if (tfoot && !tfoot.classList.contains('d-none')) { 
+                Array.from(tfoot.rows).forEach(tr => { 
+                    let rowData = []; 
+                    Array.from(tr.cells).forEach((td, idx) => { 
+                        if (visibleCols.includes(idx)) { 
+                            let val = td.textContent.trim(); 
+                            if (val.includes('$')) val = safeFloat(val); 
+                            rowData.push(val); 
+                        } 
+                    }); 
+                    if (rowData.length > 0) aoa.push(rowData); 
+                }); 
+            }
+            
+            if (aoa.length <= 1) { showToast("No data to export.", "error"); return; }
+            let ws = XLSX.utils.aoa_to_sheet(aoa); 
+            let wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, sheetName); 
+            XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+
+        window.exportPhase3All = function() {
+            let wb = XLSX.utils.book_new();
+            let tables = [
+                {id: 'table-wf-matched', name: 'Matched'},
+                {id: 'table-wf-rate', name: 'Rate_Variance'},
+                {id: 'table-wf-open-red', name: 'Open_Redemptions'},
+                {id: 'table-wf-open-reimb', name: 'Open_Reimbursements'}
+            ];
+            
+            let hasData = false;
+            tables.forEach(tInfo => {
+                let table = $id(tInfo.id); if (!table) return;
+                let aoa = [];
+                let thead = table.querySelector('thead tr.column-headers');
+                let visibleCols = [];
+                if (thead) { 
+                    let headerRow = []; 
+                    Array.from(thead.cells).forEach((th, idx) => { 
+                        if (!th.classList.contains('d-none')) { 
+                            headerRow.push(th.textContent.trim()); 
+                            visibleCols.push(idx); 
+                        } 
+                    }); 
+                    aoa.push(headerRow); 
+                }
+                let tbody = table.querySelector('tbody');
+                if (tbody) {
+                    Array.from(tbody.rows).forEach(tr => {
+                        if (!tr.classList.contains('filtered-out') && !tr.classList.contains('d-none') && tr.style.display !== 'none') {
+                            if(tr.cells.length === 1 && tr.cells[0].hasAttribute('colspan')) return;
+                            let rowData = []; 
+                            Array.from(tr.cells).forEach((td, idx) => { 
+                                if (visibleCols.includes(idx)) { 
+                                    let val = td.textContent.trim(); 
+                                    if (val.includes('$')) { val = safeFloat(val); } 
+                                    rowData.push(val); 
+                                } 
+                            });
+                            if (rowData.length > 0) aoa.push(rowData);
+                        }
+                    });
+                }
+                let tfoot = table.querySelector('tfoot');
+                if (tfoot && !tfoot.classList.contains('d-none')) { 
+                    Array.from(tfoot.rows).forEach(tr => { 
+                        let rowData = []; 
+                        Array.from(tr.cells).forEach((td, idx) => { 
+                            if (visibleCols.includes(idx)) { 
+                                let val = td.textContent.trim(); 
+                                if (val.includes('$')) val = safeFloat(val); 
+                                rowData.push(val); 
+                            } 
+                        }); 
+                        if (rowData.length > 0) aoa.push(rowData); 
+                    }); 
+                }
+                if(aoa.length > 1) {
+                    let ws = XLSX.utils.aoa_to_sheet(aoa);
+                    XLSX.utils.book_append_sheet(wb, ws, tInfo.name);
+                    hasData = true;
+                }
+            });
+            
+            if(hasData) {
+                XLSX.writeFile(wb, `Phase3_MatchEngine_${new Date().toISOString().slice(0,10)}.xlsx`);
+            } else {
+                showToast("No data to extract.", "error");
+            }
+        };
+
+        window.exportLineItemDetails = function() {
+            let aoa = [];
+            let tables = [{ id: 'table-recon-detail-gl', title: 'GL Line Items' }, { id: 'table-recon-detail-rate', title: 'Rate Variance Line Items' }, { id: 'table-recon-detail-red', title: 'Redemption Line Items' }, { id: 'table-recon-detail-reimb', title: 'Reimbursement Line Items' }];
+
+            tables.forEach(tInfo => {
+                let table = $id(tInfo.id); if (!table) return;
+                aoa.push([tInfo.title]);
+                let thead = table.querySelector('thead tr.column-headers'); let visibleCols = [];
+                if (thead) { let headerRow = []; Array.from(thead.cells).forEach((th, idx) => { if (!th.classList.contains('d-none')) { headerRow.push(th.textContent.trim()); visibleCols.push(idx); } }); aoa.push(headerRow); }
+                let tbody = table.querySelector('tbody');
+                if (tbody) {
+                    Array.from(tbody.rows).forEach(tr => {
+                        if(tr.cells.length === 1 && tr.cells[0].hasAttribute('colspan')) aoa.push([tr.cells[0].textContent.trim()]);
+                        else if (!tr.classList.contains('filtered-out') && !tr.classList.contains('d-none')) {
+                            let rowData = []; Array.from(tr.cells).forEach((td, idx) => { if (visibleCols.includes(idx)) { let val = td.textContent.trim(); let selectEl = td.querySelector('select'); if (selectEl) { val = selectEl.value; } else if (val.includes('$')) { val = safeFloat(val); } rowData.push(val); } });
+                            if (rowData.length > 0) aoa.push(rowData);
+                        }
+                    });
+                }
+                let tfoot = table.querySelector('tfoot');
+                if (tfoot && !tfoot.classList.contains('d-none')) { Array.from(tfoot.rows).forEach(tr => { let rowData = []; Array.from(tr.cells).forEach((td, idx) => { if (visibleCols.includes(idx)) { let val = td.textContent.trim(); if (val.includes('$')) val = safeFloat(val); rowData.push(val); } }); if (rowData.length > 0) aoa.push(rowData); }); }
+                aoa.push([]);
+            });
+
+            let grandTotalStr = $id('recon-detail-total') ? $id('recon-detail-total').textContent.trim() : '$0.00';
+            if (grandTotalStr.includes('$')) grandTotalStr = safeFloat(grandTotalStr);
+            aoa.push(['', '', '', '', '', 'Combined Line-Item Details Total:', grandTotalStr]);
+            if (aoa.length <= tables.length * 2 + 1) { showToast("No data to export.", "error"); return; }
+            let ws = XLSX.utils.aoa_to_sheet(aoa); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Line_Item_Details"); XLSX.writeFile(wb, `Line_Item_Details_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+
+        /* ======================== TAB-ISOLATED COLUMN TOGGLER ======================== */
+        $$('#tab3 .nav-link[data-bs-toggle="pill"]').forEach(tab => { tab.addEventListener('shown.bs.tab', function (e) { buildPhase3ColumnToggler(); }); });
+        function getActivePhase3TableId() { let activePane = document.querySelector('#tab3 .tab-content .tab-pane.active'); if (activePane) { let table = activePane.querySelector('table'); if (table) return table.id; } return 'table-wf-matched'; }
+        function buildPhase3ColumnToggler() {
+            let container = $id('phase3-column-toggler'); if (!container) return;
+            let activeTableId = getActivePhase3TableId(); let existingUnchecked = window.hiddenColsState[activeTableId] || new Set();
+            let redCols = ['Tier', 'Red UUID', 'Red Period', 'Unit', 'Acct Nbr', 'Member Nbr', 'Cert Nbr', 'Guest Name', 'Check In', 'Check Out', 'Settlement Date', 'Redeem Amt', 'Date Delta Status', 'Root Cause', 'Age Days', 'Risk Category'];
+            let reimbCols = ['Reimb UUID', 'Reimb Period', 'Unit', 'Invoice Nbr', 'Invoice Date', 'Reimb Date', 'Res Cert', 'Det Cert', 'RTID', 'Member Nbr', 'Guest Name', 'Reimb Amt', 'Tax Amt', 'Total Reimbursement', 'Audit', 'Variance', 'Flag Note'];
+            let workCols = ['Tier', 'Match ID', 'Variance', 'Date Delta Status', 'Root Cause', 'Age Days', 'Risk Category', 'Flag Note'];
+            let generateHTML = (cols, prefix) => { let html = ''; [...new Set(cols)].forEach(col => { let colKey = prefix + '-' + col.toLowerCase(); let isChecked = existingUnchecked.has(colKey) ? '' : 'checked'; let safeId = prefix + '-' + col.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase(); html += `<div class="form-check mb-2"><input class="form-check-input col-toggle-cb cursor-pointer border-secondary shadow-sm" type="checkbox" id="cb-col-${safeId}" data-colkey="${colKey}" value="${col}" ${isChecked} onchange="updateColumnVisibility()"><label class="form-check-label small fw-medium text-dark cursor-pointer" for="cb-col-${safeId}">${col}</label></div>`; }); return html; };
+            container.innerHTML = `<div class="d-flex w-100 justify-content-between align-items-center mt-1"><div class="d-flex gap-2 flex-wrap"><div class="dropdown"><button class="btn btn-primary btn-sm dropdown-toggle fw-bold shadow-sm btn-pill" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><i class="fa-solid fa-bed me-1"></i> Redemption Columns</button><div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 220px; max-height: 350px; overflow-y: auto;">${generateHTML(redCols, 'red')}</div></div><div class="dropdown"><button class="btn btn-success btn-sm dropdown-toggle fw-bold shadow-sm text-white btn-pill" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Reimbursement Columns</button><div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 220px; max-height: 350px; overflow-y: auto;">${generateHTML(reimbCols, 'reimb')}</div></div><div class="dropdown"><button class="btn btn-dark btn-sm dropdown-toggle fw-bold shadow-sm text-white btn-pill" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><i class="fa-solid fa-sliders me-1"></i> Match Working Columns</button><div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 220px; max-height: 350px; overflow-y: auto;">${generateHTML(workCols, 'work')}</div></div></div><button class="btn btn-sm btn-outline-secondary fw-bold shadow-sm btn-pill" onclick="saveColumnPreferences()"><i class="fa-solid fa-save me-1"></i> Save View</button></div>`;
+        }
+        window.updateColumnVisibility = function() { let activeTableId = getActivePhase3TableId(); if (!window.hiddenColsState) return; let hiddenCols = window.hiddenColsState[activeTableId]; hiddenCols.clear(); $$('.col-toggle-cb').forEach(cb => { if (!cb.checked) hiddenCols.add(cb.dataset.colkey); }); applyAllHiddenColumns(); };
+        window.applyAllHiddenColumns = function() {
+            if (!window.hiddenColsState) return;
+            ['table-wf-matched', 'table-wf-rate', 'table-wf-open-red', 'table-wf-open-reimb'].forEach(tableId => {
+                let table = $id(tableId); let hiddenCols = window.hiddenColsState[tableId]; if (!table || !hiddenCols) return;
+                let theadThs = Array.from(table.querySelectorAll('thead tr.column-headers th')); let rows = table.querySelectorAll('tbody tr'); let tfootTds = Array.from(table.querySelectorAll('tfoot tr td'));
+                let redCount = 0, reimbCount = 0, workCount = 0;
+                theadThs.forEach((th, idx) => {
+                    let colKey = (th.dataset.group || 'red') + '-' + th.textContent.trim().toLowerCase(); let isHidden = hiddenCols.has(colKey);
+                    if (isHidden) { th.classList.add('d-none'); rows.forEach(r => { if(r.cells[idx]) r.cells[idx].classList.add('d-none'); }); if (tfootTds[idx]) tfootTds[idx].classList.add('d-none'); } 
+                    else { th.classList.remove('d-none'); rows.forEach(r => { if(r.cells[idx]) r.cells[idx].classList.remove('d-none'); }); if (tfootTds[idx]) tfootTds[idx].classList.remove('d-none'); if (th.dataset.group === 'red') redCount++; else if (th.dataset.group === 'reimb') reimbCount++; else if (th.dataset.group === 'work') workCount++; }
+                });
+                let superHeader = table.querySelector('tr.super-header');
+                if (superHeader) { let shCells = superHeader.querySelectorAll('th'); if(shCells[0]) { shCells[0].colSpan = redCount; shCells[0].style.display = redCount === 0 ? 'none' : ''; } if(shCells[1]) { shCells[1].colSpan = reimbCount; shCells[1].style.display = reimbCount === 0 ? 'none' : ''; } if(shCells[2]) { shCells[2].colSpan = workCount; shCells[2].style.display = workCount === 0 ? 'none' : ''; } }
+            });
+        };
+
+        /* ======================== TAB 6 INDEPENDENT COLUMN TOGGLERS ======================== */
+        function initTab6ColumnTogglers() {
+            ['table-recon-detail-gl', 'table-recon-detail-rate', 'table-recon-detail-red', 'table-recon-detail-reimb'].forEach(tableId => {
+                let table = $id(tableId); let dd = $id(tableId.replace('table-recon-detail-', 'dd-cols-table-recon-detail-')); if(!table || !dd) return;
+                let html = ''; Array.from(table.querySelectorAll('thead tr.column-headers th')).filter(th => th.hasAttribute('data-colname')).forEach(th => { let colName = th.getAttribute('data-colname'); let isChecked = !th.classList.contains('d-none') ? 'checked' : ''; let safeId = tableId + '-col-' + colName.replace(/\s+/g, '-'); html += `<div class="form-check mb-2"><input class="form-check-input cursor-pointer border-secondary shadow-sm tab6-col-cb" data-table="${tableId}" data-colname="${colName}" type="checkbox" id="${safeId}" ${isChecked} onchange="applyTab6ColToggle('${tableId}')"><label class="form-check-label small fw-medium text-dark cursor-pointer" for="${safeId}">${colName}</label></div>`; }); dd.innerHTML = html;
+            });
+        }
+        window.applyTab6ColToggle = function(tableId) {
+            let table = $id(tableId); let dd = $id(tableId.replace('table-recon-detail-', 'dd-cols-table-recon-detail-')); if(!table || !dd) return;
+            let visibilityMap = {}; dd.querySelectorAll('.tab6-col-cb').forEach(cb => visibilityMap[cb.getAttribute('data-colname')] = cb.checked);
+            let theadThs = Array.from(table.querySelectorAll('thead tr.column-headers th')); let rows = table.querySelectorAll('tbody tr'); let tfootTds = Array.from(table.querySelectorAll('tfoot tr td'));
+            theadThs.forEach((th, idx) => { let colName = th.getAttribute('data-colname'); if(!colName) return; let isVisible = visibilityMap[colName]; if (isVisible) { th.classList.remove('d-none'); rows.forEach(r => { if(r.cells[idx]) r.cells[idx].classList.remove('d-none'); }); if(tfootTds[idx]) tfootTds[idx].classList.remove('d-none'); } else { th.classList.add('d-none'); rows.forEach(r => { if(r.cells[idx]) r.cells[idx].classList.add('d-none'); }); if(tfootTds[idx]) tfootTds[idx].classList.add('d-none'); } });
+        };
+        document.addEventListener('DOMContentLoaded', initTab6ColumnTogglers);
+
+        /* ======================== MANUAL MATCHING ======================== */
+        window.updateSelectedMatchTotal = function() {
+            let total = 0; let count = 0;
+            $$('.manual-match-cb:checked').forEach(cb => { let tr = cb.closest('tr'); if (tr) { let amtCell = tr.querySelector('.line-amt'); if(amtCell) { total += safeFloat(amtCell.textContent); count++; } } });
+            let el = $id('selected-match-total'); let btn = $id('btn-manual-match');
+            if (el) { el.innerText = 'Selected: ' + fmt(total); el.className = 'badge me-3 fs-6 px-4 py-2 shadow-sm ' + (total === 0 && count > 0 ? 'bg-success' : (total === 0 ? 'bg-secondary' : (total < 0 ? 'bg-danger' : 'bg-warning text-dark'))); }
+            if (btn) btn.disabled = !(count >= 2 && Math.abs(total) < 0.01);
+        };
+        window.toggleAllRecon = function(source, tbodyId) { $$('#' + tbodyId + ' .manual-match-cb').forEach(cb => { let tr = cb.closest('tr'); if (tr && !tr.classList.contains('filtered-out')) cb.checked = source.checked; }); updateSelectedMatchTotal(); };
+
+        window.performManualMatch = function() {
+            let checkboxes = $$('.manual-match-cb:checked');
+            if (checkboxes.length < 2) { showToast("Please select at least two items to manually match.", "error"); return; }
+            let total = 0; checkboxes.forEach(cb => { let tr = cb.closest('tr'); let amtCell = tr ? tr.querySelector('.line-amt') : null; if (amtCell) total += safeFloat(amtCell.textContent); });
+            if (Math.abs(total) >= 0.01) { showToast("Selected items must net to exactly zero to match manually.", "error"); return; }
+            let matchId = genUUID('MAN_MTCH');
+            checkboxes.forEach(cb => {
+                let reconId = cb.value; let trTab6 = cb.closest('tr'); let sourceBadge = trTab6.cells[3].textContent.trim();
+                let targetTbodyId = 'tbl-manual-match-gl'; 
+                if (sourceBadge.includes('RATE VARIANCE')) targetTbodyId = 'tbl-manual-match-rate'; 
+                else if (sourceBadge.includes('REDEMPTION')) targetTbodyId = 'tbl-manual-match-red'; 
+                else if (sourceBadge.includes('REIMBURSEMENT')) targetTbodyId = 'tbl-manual-match-reimb';
+                
+                let targetTbody = $id(targetTbodyId); if (targetTbody && targetTbody.querySelector('td[colspan]')) targetTbody.innerHTML = '';
+                
+                let newRow = document.createElement('tr'); newRow.innerHTML = trTab6.innerHTML; 
+                newRow.cells[2].innerHTML = `<span class="badge bg-dark">${matchId}</span>`; 
+                newRow.deleteCell(1); 
+                
+                let newCb = newRow.querySelector('.manual-match-cb'); 
+                if (newCb) { newCb.classList.remove('manual-match-cb'); newCb.classList.add('unmatch-cb'); newCb.checked = false; newCb.removeAttribute('onchange'); }
+                
+                let targetThead = document.querySelector('#' + targetTbodyId.replace('tbl-', 'table-') + ' thead tr.column-headers');
+                if (targetThead) { 
+                    let ths = targetThead.querySelectorAll('th'); 
+                    Array.from(newRow.cells).forEach((cell, idx) => { 
+                        if (ths[idx] && ths[idx].classList.contains('d-none')) cell.classList.add('d-none'); 
+                        else cell.classList.remove('d-none'); 
+                    }); 
+                }
+                
+                if(targetTbody) targetTbody.appendChild(newRow);
+                let srcRow = document.querySelector(`tr[data-recon-id="${reconId}"]`); 
+                if (srcRow) { window.unmatchCache = window.unmatchCache || {}; window.unmatchCache[reconId] = { parent: srcRow.parentNode, elem: srcRow }; srcRow.remove(); }
+                trTab6.remove(); 
+            });
+            $$('input[type="checkbox"][onchange^="toggleAllRecon"]').forEach(cb => cb.checked = false);
+            ['table-manual-gl', 'table-wf-rate', 'table-wf-open-red', 'table-wf-open-reimb'].forEach(id => { let tbl = $id(id); if (tbl) calcTableTotals(tbl); });
+            applyAllHiddenColumns(); updateDynamicSummary(); updateSelectedMatchTotal();
+            showToast(`${checkboxes.length} item(s) manually matched and moved to Manual Match Repository.`);
+        };
+        
+        window.performUnmatch = function() {
+            let checkboxes = $$('.unmatch-cb:checked'); if (checkboxes.length === 0) { showToast("Please select at least one item to unmatch.", "error"); return; }
+            checkboxes.forEach(cb => { let reconId = cb.value; let trTab4 = cb.closest('tr'); if (window.unmatchCache && window.unmatchCache[reconId]) { let cache = window.unmatchCache[reconId]; if (cache.parent && cache.elem) cache.parent.appendChild(cache.elem); delete window.unmatchCache[reconId]; } if (trTab4) trTab4.remove(); });
+            ['table-manual-gl', 'table-wf-rate', 'table-wf-open-red', 'table-wf-open-reimb'].forEach(id => { let tbl = $id(id); if (tbl) calcTableTotals(tbl); });
+            applyAllHiddenColumns(); updateDynamicSummary();
+            ['tbl-manual-match-gl', 'tbl-manual-match-rate', 'tbl-manual-match-red', 'tbl-manual-match-reimb'].forEach(tbodyId => { let tbody = $id(tbodyId); if (tbody && tbody.children.length === 0) { let colCount = tbody.closest('table').querySelectorAll('thead tr.column-headers th').length; tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center text-muted py-2">No manual matches yet...</td></tr>`; } });
+            showToast(`${checkboxes.length} item(s) unmatched and restored to reconciliation.`, "success");
+        };
+
+        /* ======================== FILE LOADERS & ENGINE ======================== */
+        $$('.custom-file-input').forEach(input => {
+            input.addEventListener('change', function(e) {
+                let targetMap = { 'file-gl': 'rawGL', 'file-red': 'rawRed', 'file-reimb': 'rawReimb', 'file-cert': 'rawCert', 'file-open': 'rawOpenItemsAoA' };
+                let targetVar = targetMap[this.id]; let f = e.target.files[0]; if(!f) return;
+                let reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        let wb = XLSX.read(new Uint8Array(evt.target.result), {type:'array'});
+                        if (targetVar === 'rawOpenItemsAoA') window[targetVar] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval:""});
+                        else window[targetVar] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                        showToast(`Successfully loaded ${f.name}.`); $id('btn-run-engine').disabled = false; $id('btn-run-engine').style.opacity = '1';
+                    } catch(err) { showToast(`Failed to parse ${f.name}. Invalid format.`, 'error'); }
+                }; reader.readAsArrayBuffer(f);
+            });
+        });
+
+        function executePipeline() { if(window.rawGL.length===0 && window.rawRed.length===0) { showToast("No files selected. Please load files or use Demo Data.", "error"); } else { populateMonthFilter(); applyFilters(false); } }
+
+        function applyFilters(isManualTrigger = false) {
+            let unit = $id('unit-filter').value; let month = $id('month-filter').value;
+            let unitUpper = unit.toUpperCase();
+            const checkMonth = (val) => { if(month === 'ALL') return true; if(!val) return true; return parseExcelDate(val).startsWith(month); };
+            const checkUnit = (row, colNames) => { if(unit === 'ALL') return true; return String(getVal(row, colNames)).toUpperCase().includes(unitUpper); };
+            window.filteredGL = window.rawGL.filter(r => checkUnit(r, ['Op Unit']) && checkMonth(getVal(r, ['Journal Date', 'Date Time', 'Date'])));
+            window.filteredRed = window.rawRed.filter(r => checkUnit(r, ['Unit']) && checkMonth(getVal(r, ['Settlement Date'])));
+            window.filteredReimb = window.rawReimb.filter(r => checkUnit(r, ['Bill To']) && checkMonth(getVal(r, ['Invoice Date'])));
+            window.filteredCert = window.rawCert.filter(r => checkUnit(r, ['Unit']));
+            if(isManualTrigger && window.rawGL.length > 0) { runPhase1ETL(); } else if (window.rawGL.length > 0 || window.rawRed.length > 0 || window.rawOpenItemsAoA.length > 0) { runPhase1ETL(); }
+        }
+
+        function loadDummyData() {
+            clearApplicationData(); let dt1 = "2026-06-15", dt2 = "2026-06-16", dt3 = "2026-07-05";
+            window.rawCert = [{ "Unit": "12ABC", "Acct Nbr": "F100", "Cert Numbr": "80001000" }, { "Unit": "12ABC", "Acct Nbr": "F101", "Cert Numbr": "80001001" }, { "Unit": "12ABC", "Acct Nbr": "F200", "Cert Numbr": "80002000" }];
+            window.rawRed = [{ "Unit": "12ABC", "Acct Nbr": "F100", "Payment Method": "MR", "Arrival Date": "2026-06-10", "Departure Date": dt1, "Settlement Date": dt1, "Amount": 1000.00, "Guest Name": "DOE/JOHN", "Reward ID": "500011" }, { "Unit": "12ABC", "Acct Nbr": "F101", "Payment Method": "MR", "Arrival Date": "2026-06-12", "Departure Date": dt2, "Settlement Date": dt2, "Amount": 550.00, "Guest Name": "SMITH, JANE", "Reward ID": "500022" }, { "Unit": "12ABC", "Acct Nbr": "F200", "Payment Method": "MR", "Arrival Date": "2026-07-01", "Departure Date": dt3, "Settlement Date": dt3, "Amount": 800.00, "Guest Name": "WAYNE BRUCE", "Reward ID": "500033" }];
+            window.rawReimb = [{ "Bill To": "C1234", "Invoice Number": "INV-1001", "Invoice Date": dt1, "Bill Line Note": `${dt1} 80001000 90001000 RT123 900.00 100.00 JOHN DOE 500011 1000.00` }, { "Bill To": "C1234", "Invoice Number": "INV-1002", "Invoice Date": dt2, "Bill Line Note": `${dt2} 80001001 90001001 RT124 450.00 50.00 JANE SMITH 500022 500.00` }, { "Bill To": "C1234", "Invoice Number": "INV-1003", "Invoice Date": dt3, "Bill Line Note": `${dt3} 80009999 90009999 RT999 270.00 30.00 CLARK KENT 500099 300.00` }];
+            window.rawGL = [
+                { "Op Unit": "12ABC", "Source": "HCA", "User": "Batch", "Journal Date": dt1, "Base Amount": 1000.00 }, 
+                { "Op Unit": "12ABC", "Source": "HCA", "User": "Batch", "Journal Date": dt2, "Base Amount": 500.00 }, 
+                { "Op Unit": "12ABC", "Source": "HCA", "User": "Batch", "Journal Date": dt3, "Base Amount": 800.00 }, 
+                { "Op Unit": "12ABC", "Source": "HCQ", "User": "Batch", "Reversal": "Next Day", "Journal Date": "2026-06-30", "Base Amount": -1500.00 }, 
+                { "Op Unit": "12ABC", "Source": "HCQ", "User": "Batch", "Reversal": "Next Day", "Journal Date": "2026-07-31", "Base Amount": -200.00 }, 
+                { "Op Unit": "12ABC", "Source": "MAN", "User": "S.Kumar", "Journal Date": "2026-06-30", "Base Amount": 450.00, "Description": "Revenue True Up" },
+                { "Op Unit": "12ABC", "Source": "MAN", "User": "Tester", "Journal Date": "2026-07-05", "Base Amount": -800.00, "Description": "Manual Match Offset Test" }
+            ];
+            $id('btn-run-engine').disabled = false; $id('btn-run-engine').style.opacity = "1"; populateMonthFilter(); applyFilters(false); showToast("Synthetic Demo Data Loaded Successfully.");
+        }
+
+        function runPhase1ETL() {
+            let cDict = {}; window.filteredCert.forEach(c => cDict[String(getVal(c,['Unit'])).trim() + String(getVal(c,['Acct Nbr','Folio'])).trim()] = String(getVal(c,['Certificate Number','Certificate','Cert Numbr','Cert'])).trim());
+            window.cleansedRed = window.filteredRed.filter(r => (getVal(r,['Payment Method','Pay Method'])||'') === 'MR').map(r => { let unit = String(getVal(r,['Unit'])||'').trim(); let acct = String(getVal(r,['Acct Nbr','Account'])).trim(); return { uuid: genUUID('RED'), unit: unit, folio: acct, date: parseExcelDate(getVal(r,['Settlement Date'])), checkIn: parseExcelDate(getVal(r,['Arrival Date', 'Arrival', 'Check In'])), checkOut: parseExcelDate(getVal(r,['Departure Date', 'Departure', 'Check Out', 'Checkout Date'])), name: normalizeName(getVal(r,['Account Name','Guest Name'])), member: String(getVal(r,['Reward ID','Member Nbr'])).trim().replace(/\.0$/, ''), cert: cDict[unit+acct] || 'UNMATCHED', amt: Math.abs(safeFloat(getVal(r,['Settlement Amt.','Amount','Settlement Amt']))), matched: false, period: 'Current Month' }; });
+            window.cleansedReimb = []; window.filteredReimb.forEach(r => { let note = String(getVal(r,['Bill Line Note','Note'])).trim(); let unit = String(getVal(r,['Bill To'])||'').trim(); if (!note) return; let t = note.split(/\s+/); let rawDate = t[0]; if (rawDate.match(/^[A-Za-z]/)) return; let dt = parseExcelDate(rawDate); if (!dt || dt === '1900-01-01') return; let invDate = parseExcelDate(getVal(r, ['Invoice Date'])); let invNum = String(getVal(r, ['Invoice', 'Invoice Nbr', 'Invoice Number'])).trim(); if (t.length < 8 || isNaN(parseFloat(t[t.length-1]))) { window.cleansedReimb.push({ uuid: genUUID('OFB'), unit: unit, invoice: invNum, invoiceDate: invDate, date: parseExcelDate(getVal(r,['Invoice Date'])), resCert: String(getVal(r,['Certificate'])).trim(), detCert: '', rtid: '', member: String(getVal(r,['Member Nbr'])).trim(), name: normalizeName(getVal(r,['Guest Name'])), reimbAmt: 0, taxAmt: 0, amt: -Math.abs(safeFloat(getVal(r,['Total Reimb','Gross']))), partsSum: 0, mathVariance: false, matched: false, period: 'Current Month' }); return; } let resCert = t[1]; let detCert = t[2]; let rtid = t[3]; let reimbAmt = -Math.abs(safeFloat(t[4])); let taxAmt = -Math.abs(safeFloat(t[5])); let totalAmt = -Math.abs(safeFloat(t[t.length-1])); let member = String(t[t.length-2]).trim(); let sumParts = reimbAmt + taxAmt; window.cleansedReimb.push({ uuid: genUUID('OFB'), unit: unit, invoice: invNum, invoiceDate: invDate, date: dt, resCert: resCert, detCert: detCert, rtid: rtid, member: member, name: normalizeName(t.slice(6, -2).join(' ')), reimbAmt: reimbAmt, taxAmt: taxAmt, amt: totalAmt, partsSum: sumParts, mathVariance: Math.abs(sumParts - totalAmt) > 0.05, matched: false, period: 'Current Month' }); });
+            
+            window.priorManualGL = []; window.priorRateVariances = [];
+            if (window.rawOpenItemsAoA && window.rawOpenItemsAoA.length > 0) {
+                let section = ''; let hdrs = {};
+                window.rawOpenItemsAoA.forEach(row => {
+                    if (!row || row.length === 0) return; let c0 = row[0] ? String(row[0]).trim() : ''; let c1 = row[1] ? String(row[1]).trim() : '';
+                    if (c0 === 'GL Line Items') section = 'GL'; else if (c0 === 'Rate Variance Line Items') section = 'RATE'; else if (c0 === 'Redemption Line Items') section = 'RED'; else if (c0 === 'Reimbursement Line Items') section = 'REIMB'; else if (c1 === 'Classification' || c1 === 'Match ID' || c1 === 'Source Type') { hdrs = {}; row.forEach((v, i) => { if(v) hdrs[String(v).trim()] = i; }); }
+                    else if ((c1 === 'GL' || row[hdrs['Source Type']] === 'GL') && section === 'GL') { window.priorManualGL.push({ unit: row[hdrs['Unit']] || '', jrn: row[hdrs['Journal ID']] || '', date: row[hdrs['Journal Date']] || '', desc: row[hdrs['Description']] || '', user: row[hdrs['User']] || '', amt: safeFloat(row[hdrs['Amount']]), period: 'Prior Month' }); }
+                    else if ((c1 === 'RATE VARIANCE' || row[hdrs['Source Type']] === 'RATE VARIANCE') && section === 'RATE') { let mem = row[hdrs['Member Nbr']] || ''; let cert = row[hdrs['Cert Nbr']] || ''; let unit = row[hdrs['Unit']] || ''; let guest = row[hdrs['Guest Name']] || ''; let sDate = row[hdrs['Settlement Date']] || ''; let inv = row[hdrs['Invoice Nbr']] || ''; let iDate = row[hdrs['Invoice Date']] || ''; let matchId = row[hdrs['Match ID']] || genUUID('RATE'); window.priorRateVariances.push({ red: { uuid: genUUID('RED'), unit: unit, folio: row[hdrs['Acct Nbr']] || '', date: sDate, checkIn: '', checkOut: '', name: guest, member: mem, cert: cert, amt: safeFloat(row[hdrs['Redeem Amt']]), matched: true, period: 'Prior Month', matchId: matchId }, rm: { uuid: genUUID('OFB'), unit: unit, invoice: inv, invoiceDate: iDate, date: iDate, resCert: cert, detCert: '', rtid: '', member: mem, name: guest, reimbAmt: safeFloat(row[hdrs['Reimb Amt']]), taxAmt: safeFloat(row[hdrs['Tax Amt']]), amt: safeFloat(row[hdrs['Total Reimbursement']]), partsSum: 0, mathVariance: false, matched: true, period: 'Prior Month', matchId: matchId }, isPrior: true, varianceAmt: safeFloat(row[hdrs['Variance']]), matchId: matchId }); }
+                    else if ((c1 === 'REDEMPTION' || row[hdrs['Source Type']] === 'REDEMPTION') && section === 'RED') { window.cleansedRed.push({ uuid: genUUID('RED'), unit: row[hdrs['Unit']] || '', folio: row[hdrs['Acct Nbr']] || '', date: row[hdrs['Settlement Date']] || '', checkIn: '', checkOut: '', name: row[hdrs['Guest Name']] || '', member: row[hdrs['Member Nbr']] || '', cert: row[hdrs['Cert Nbr']] || '', amt: safeFloat(row[hdrs['Redeem Amt']]), matched: false, period: 'Prior Month' }); }
+                    else if ((c1 === 'REIMBURSEMENT' || row[hdrs['Source Type']] === 'REIMBURSEMENT') && section === 'REIMB') { window.cleansedReimb.push({ uuid: genUUID('OFB'), unit: row[hdrs['Unit']] || '', invoice: row[hdrs['Invoice Nbr']] || '', invoiceDate: row[hdrs['Invoice Date']] || '', date: row[hdrs['Invoice Date']] || '', resCert: row[hdrs['Res Cert']] || '', detCert: row[hdrs['Det Cert']] || '', rtid: row[hdrs['RTID']] || '', member: row[hdrs['Member Nbr']] || '', name: row[hdrs['Guest Name']] || '', reimbAmt: 0, taxAmt: 0, amt: safeFloat(row[hdrs['Total Reimbursement']]), partsSum: 0, mathVariance: false, matched: false, period: 'Prior Month' }); }
+                });
+            }
+
+            $id('tbl-cl-red').innerHTML = window.cleansedRed.map(r => `<tr><td>${r.uuid}</td><td><span class="badge ${r.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${r.period}</span></td><td>${r.unit}</td><td>${r.folio}</td><td>${r.date}</td><td>${r.checkIn}</td><td>${r.checkOut}</td><td>${r.name}</td><td>${r.member}</td><td>${r.cert==='UNMATCHED'?'<span class="badge badge-error">UNMATCHED</span>':r.cert}</td><td class="text-end">${fmt(r.amt)}</td></tr>`).join('');
+            $id('tbl-cl-reimb').innerHTML = window.cleansedReimb.map(r => `<tr><td>${r.uuid}</td><td><span class="badge ${r.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${r.period}</span></td><td>${r.unit}</td><td>${r.invoice}</td><td>${r.invoiceDate}</td><td>${r.date}</td><td>${r.resCert}</td><td>${r.detCert}</td><td>${r.rtid || ''}</td><td>${r.member}</td><td>${r.name}</td><td class="text-end">${fmt(r.reimbAmt)}</td><td class="text-end">${fmt(r.taxAmt)}</td><td class="text-end">${fmt(r.amt)}</td><td class="text-center">${r.mathVariance?'<span class="badge badge-error">FAIL</span>':'<span class="badge badge-success-light">OK</span>'}</td></tr>`).join('');
+            window.combinedCleansed = [...window.cleansedRed, ...window.cleansedReimb];
+
+            runPhase2Accordion(); runPhase3Waterfall(); initFiltersAndTotals(); buildPhase3ColumnToggler(); applyAllHiddenColumns(); updateDynamicSummary(); showToast("Pipeline Executed Successfully.");
+        }
+
+        function runPhase2Accordion() {
+            window.hcaMap = {}; window.hcqMap = {}; window.manualGL = [];
+            window.cleansedRed.forEach(r => { let m = getMonthStr(r.date); if(!window.hcaMap[m]) window.hcaMap[m] = { gl:0, sl:0, dates:{} }; if(!window.hcaMap[m].dates[r.date]) window.hcaMap[m].dates[r.date] = { gl:0, sl:0, txns:[] }; window.hcaMap[m].sl += r.amt; window.hcaMap[m].dates[r.date].sl += r.amt; window.hcaMap[m].dates[r.date].txns.push(r); });
+            window.cleansedReimb.forEach(r => { let m = getMonthStr(r.invoiceDate); if(!window.hcqMap[m]) window.hcqMap[m] = { gl:0, sl:0, dates:{} }; window.hcqMap[m].sl += r.amt; });
+
+            let glSysAmt = 0; let glManAmt = 0; window.glTotalAmt = 0;
+            window.filteredGL.forEach(g => {
+                let src = String(getVal(g,['Source'])).trim().toUpperCase(); let user = String(getVal(g,['User'])||'Batch').trim().toUpperCase(); let dt = parseExcelDate(getVal(g,['Journal Date'])); let m = getMonthStr(dt); let rawAmt = safeFloat(getVal(g,['Base Amount','Amount'])); let unit = String(getVal(g,['Op Unit'])).trim();
+                if(user !== 'BATCH' && src !== 'HCA' && src !== 'HCQ' && src !== 'HC6') { window.manualGL.push({ unit: unit, jrn: getVal(g,['Journal ID']), date: dt, desc: getVal(g,['Description']), amt: rawAmt, user: getVal(g,['User']), period: 'Current Month' }); glManAmt += rawAmt; window.glTotalAmt += rawAmt; } 
+                else if (src === 'HCA') { if(!window.hcaMap[m]) window.hcaMap[m] = { gl:0, sl:0, dates:{} }; if(!window.hcaMap[m].dates[dt]) window.hcaMap[m].dates[dt] = { gl:0, sl:0, txns:[] }; let hcaAmt = Math.abs(rawAmt); window.hcaMap[m].gl += hcaAmt; window.hcaMap[m].dates[dt].gl += hcaAmt; glSysAmt += hcaAmt; window.glTotalAmt += hcaAmt; } 
+                else if (src === 'HCQ' || src === 'HC6') { let hcqAmt = rawAmt; if(!window.hcqMap[m]) window.hcqMap[m] = { gl:0, sl:0, dates:{} }; window.hcqMap[m].gl += hcqAmt; glSysAmt += hcqAmt; window.glTotalAmt += hcqAmt; }
+            });
+            window.priorManualGL.forEach(m => { window.manualGL.push(m); glManAmt += m.amt; window.glTotalAmt += m.amt; });
+
+            const sID = (str) => String(str).replace(/[^a-zA-Z0-9]/g, '_'); let hHca = ""; 
+            Object.keys(window.hcaMap).sort().reverse().forEach(m => { 
+                let md = window.hcaMap[m]; let sm = sID(m);
+                let vM = Math.abs(md.gl - md.sl); let sM = vM < 0.05 ? '<span class="badge badge-success-light">Match</span>' : '<span class="badge badge-variance">Unmatched</span>';
+                
+                hHca += `<tr class="row-level-1 cursor-pointer hca-m-${sm}" onclick="toggleAccordion(1, '${sm}', 'icon-hca-m-${sm}')"><td><i id="icon-hca-m-${sm}" class="fa-solid fa-chevron-right icon-transition"></i></td><td>Month: ${m}</td><td class="text-end">${fmt(md.gl)}</td><td class="text-end">${fmt(md.sl)}</td><td class="text-end">${fmt(md.gl-md.sl)}</td><td class="text-center">${sM}</td></tr>`;
+                Object.keys(md.dates).sort().reverse().forEach(d => { 
+                    let dd = md.dates[d]; let sd = sID(d);
+                    let vD = Math.abs(dd.gl - dd.sl); let sD = vD < 0.05 ? '<span class="badge badge-success-light">Match</span>' : '<span class="badge badge-variance">Unmatched</span>';
+                    
+                    hHca += `<tr class="row-level-2 cursor-pointer hca-m-${sm} d-none hca-d-${sd}" onclick="toggleAccordion(2, '${sd}', 'icon-hca-d-${sd}')"><td><i id="icon-hca-d-${sd}" class="fa-solid fa-angle-right text-muted icon-transition"></i></td><td>Date: ${d}</td><td class="text-end">${fmt(dd.gl)}</td><td class="text-end">${fmt(dd.sl)}</td><td class="text-end">${fmt(dd.gl-dd.sl)}</td><td class="text-center">${sD}</td></tr>`;
+                    dd.txns.forEach(t => hHca += `<tr class="row-level-3 hca-m-${sm} hca-d-${sd} d-none text-muted"><td></td><td colspan="2">Folio: ${t.folio} | Guest: ${t.name}</td><td class="text-end">${fmt(t.amt)}</td><td colspan="2"></td></tr>`);
+                });
+            }); $id('tbl-nested-hca').innerHTML = hHca || '<tr><td colspan="6" class="text-center">No Data</td></tr>';
+
+            let hHcq = ""; Object.keys(window.hcqMap).sort().reverse().forEach(m => { let md = window.hcqMap[m]; let vMonth = md.gl - md.sl; let sm = sID(m);
+                hHcq += `<tr class="row-level-1 cursor-pointer hcq-m-${sm}"><td><i class="fa-solid fa-calendar-check text-muted"></i></td><td>Month: ${m}</td><td class="text-end">${fmt(md.gl)}</td><td class="text-end">${fmt(md.sl)}</td><td class="text-end ${Math.abs(vMonth)>0.05?'text-danger':''}">${fmt(vMonth)}</td><td class="text-center">${Math.abs(vMonth)<0.05?'<span class="badge badge-success-light">Balanced</span>':'<span class="badge badge-error">Variance</span>'}</td></tr>`;
+            }); $id('tbl-nested-hcq').innerHTML = hHcq || '<tr><td colspan="6" class="text-center">No Data</td></tr>';
+
+            $id('tbl-manual-gl').innerHTML = window.manualGL.map(m => `<tr><td><span class="badge ${m.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${m.period || 'Current Month'}</span></td><td>${m.unit}</td><td>${m.jrn}</td><td>${m.date}</td><td>${m.desc}</td><td class="text-end">${fmt(m.amt)}</td><td>${m.user}</td><td>GL</td></tr>`).join('');
+
+            let slRedAmt = window.cleansedRed.reduce((s, r) => s + r.amt, 0); let slReimbAmt = window.cleansedReimb.reduce((s, r) => s + r.amt, 0); let proofVariance = window.glTotalAmt - slRedAmt - slReimbAmt - glManAmt;
+            $id('proof-gl-total').innerText = fmt(window.glTotalAmt); $id('proof-sl-red').innerText = fmt(slRedAmt); $id('proof-sl-reimb').innerText = fmt(slReimbAmt); $id('proof-manual').innerText = fmt(glManAmt);
+            let statusEl = $id('proof-status-alert');
+            if (Math.abs(proofVariance) <= 0.05) { statusEl.className = "p-3 rounded text-center fw-bold shadow-sm bg-success text-white"; statusEl.innerHTML = `<i class="fa-solid fa-check-circle me-2"></i> SL to GL matched completely.`; } 
+            else { statusEl.className = "p-3 rounded text-center fw-bold shadow-sm bg-danger text-white"; statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-2"></i> SL to GL Matching Variance: ${fmt(proofVariance)}`; }
+        }
+
+        function runPhase3Waterfall() {
+            window.matchedData = []; window.rateVariances = []; window.openRed = []; window.openReimb = [];
+            window.cleansedRed.forEach(red => {
+                if (red.period === 'Prior Month') return; let matchId;
+                let i1 = window.cleansedReimb.findIndex(rm => !rm.matched && rm.period !== 'Prior Month' && rm.member === red.member && rm.resCert === red.cert && Math.abs(Math.abs(rm.amt) - Math.abs(red.amt)) < 0.05);
+                if(i1 !== -1) { matchId = genUUID('AUTO'); red.matched = true; red.matchId = matchId; window.cleansedReimb[i1].matched = true; window.cleansedReimb[i1].matchId = matchId; window.matchedData.push({tier: 'Tier 1', red: red, rm: window.cleansedReimb[i1], matchId: matchId}); return; }
+                let i2 = window.cleansedReimb.findIndex(rm => !rm.matched && rm.period !== 'Prior Month' && rm.member === red.member && Math.abs(Math.abs(rm.amt) - Math.abs(red.amt)) < 0.05);
+                if(i2 !== -1) { matchId = genUUID('AUTO'); red.matched = true; red.matchId = matchId; window.cleansedReimb[i2].matched = true; window.cleansedReimb[i2].matchId = matchId; window.matchedData.push({tier: 'Tier 2', red: red, rm: window.cleansedReimb[i2], matchId: matchId}); return; }
+                let i3 = window.cleansedReimb.findIndex(rm => !rm.matched && rm.period !== 'Prior Month' && rm.resCert !== '' && rm.resCert === red.cert && Math.abs(Math.abs(rm.amt) - Math.abs(red.amt)) < 0.05);
+                if(i3 !== -1) { matchId = genUUID('AUTO'); red.matched = true; red.matchId = matchId; window.cleansedReimb[i3].matched = true; window.cleansedReimb[i3].matchId = matchId; window.matchedData.push({tier: 'Tier 3', red: red, rm: window.cleansedReimb[i3], matchId: matchId}); return; }
+                let ir = window.cleansedReimb.findIndex(rm => !rm.matched && rm.period !== 'Prior Month' && rm.member === red.member && rm.resCert === red.cert);
+                if(ir !== -1) { matchId = genUUID('RATE'); red.matched = true; red.matchId = matchId; window.cleansedReimb[ir].matched = true; window.cleansedReimb[ir].matchId = matchId; window.rateVariances.push({red: red, rm: window.cleansedReimb[ir], matchId: matchId}); }
+            });
+            if (window.priorRateVariances && window.priorRateVariances.length > 0) window.priorRateVariances.forEach(pr => window.rateVariances.push(pr));
+            let endDt = new Date("2026-06-30");
+            window.openRed = window.cleansedRed.filter(r=>!r.matched).map(r => { 
+                if (r.period !== 'Prior Month') { r.age = Math.floor((endDt - new Date(r.date)) / (1000*60*60*24)); r.risk = r.age > 60 ? 'HIGH_RISK_REVENUE_TRUE_UP' : (r.age > 30 ? 'RISK_ITEM_ACTION_REQUIRED' : 'BALANCE_DETAIL_NO_RISK'); } 
+                else { r.age = 0; r.risk = 'PRIOR_PERIOD_CARRYOVER'; } return r; 
+            });
+            window.openReimb = window.cleansedReimb.filter(r=>!r.matched);
+
+            $id('tbl-wf-matched').innerHTML = window.matchedData.map(m => {
+                let dlt = Math.floor((new Date(m.rm.date) - new Date(m.red.date))/(1000*60*60*24)); let s = (dlt>=0 && dlt<=7) ? '<span class="badge badge-success-light">DATE_IN_RANGE</span>' : '<span class="badge badge-variance">OUT_RANGE</span>';
+                return `<tr><td>${m.red.uuid||''}</td><td><span class="badge ${m.red.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${m.red.period||'Current Month'}</span></td><td>${m.red.unit||''}</td><td>${m.red.folio||''}</td><td>${m.red.member}</td><td>${m.red.cert}</td><td>${m.red.name}</td><td>${m.red.checkIn}</td><td>${m.red.checkOut}</td><td>${m.red.date}</td><td class="text-end border-end">${fmt(m.red.amt)}</td><td>${m.rm.uuid||''}</td><td><span class="badge ${m.rm.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${m.rm.period||'Current Month'}</span></td><td>${m.rm.unit||''}</td><td>${m.rm.invoice}</td><td>${m.rm.invoiceDate}</td><td>${m.rm.date}</td><td>${m.rm.resCert}</td><td>${m.rm.detCert}</td><td>${m.rm.rtid||''}</td><td>${m.rm.member}</td><td>${m.rm.name}</td><td class="text-end">${fmt(m.rm.reimbAmt)}</td><td class="text-end">${fmt(m.rm.taxAmt)}</td><td class="text-end">${fmt(m.rm.amt)}</td><td class="text-center border-end">${m.rm.mathVariance?'FAIL':'OK'}</td><td><span class="badge bg-primary">${m.tier}</span></td><td><span class="badge bg-secondary">${m.matchId||''}</span></td><td class="text-end">${fmt(0)}</td><td class="text-center">${s}</td><td></td><td></td><td></td><td></td></tr>`;
+            }).join('');
+
+            $id('tbl-wf-rate').innerHTML = window.rateVariances.map(m => {
+                let v = m.isPrior ? m.varianceAmt : (m.red.amt + m.rm.amt);
+                return `<tr><td>${m.red.uuid||''}</td><td><span class="badge ${m.red.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${m.red.period||'Current Month'}</span></td><td>${m.red.unit||''}</td><td>${m.red.folio||''}</td><td>${m.red.member}</td><td>${m.red.cert}</td><td>${m.red.name}</td><td>${m.red.checkIn}</td><td>${m.red.checkOut}</td><td>${m.red.date}</td><td class="text-end border-end">${fmt(m.red.amt)}</td><td>${m.rm.uuid||''}</td><td><span class="badge ${m.rm.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${m.rm.period||'Current Month'}</span></td><td>${m.rm.unit||''}</td><td>${m.rm.invoice}</td><td>${m.rm.invoiceDate}</td><td>${m.rm.date}</td><td>${m.rm.resCert}</td><td>${m.rm.detCert}</td><td>${m.rm.rtid||''}</td><td>${m.rm.member}</td><td>${m.rm.name}</td><td class="text-end">${fmt(m.rm.reimbAmt)}</td><td class="text-end">${fmt(m.rm.taxAmt)}</td><td class="text-end">${fmt(m.rm.amt)}</td><td class="text-center border-end">${m.rm.mathVariance?'FAIL':'OK'}</td><td></td><td><span class="badge bg-secondary">${m.matchId||''}</span></td><td class="text-end fw-bold ${v<0?'text-danger':'text-success'}">${fmt(v)}</td><td></td><td>Tier Calc</td><td></td><td></td><td></td></tr>`;
+            }).join('');
+
+            $id('tbl-wf-open-red').innerHTML = window.openRed.sort((a,b)=>b.age-a.age).map(r => {
+                let b = r.risk === 'HIGH_RISK_REVENUE_TRUE_UP' ? 'badge-error' : (r.risk === 'RISK_ITEM_ACTION_REQUIRED' ? 'badge-variance' : 'badge-success-light'); if (r.period === 'Prior Month') b = 'badge-warning text-dark';
+                return `<tr><td>${r.uuid||''}</td><td><span class="badge ${r.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${r.period||'Current Month'}</span></td><td>${r.unit||''}</td><td>${r.folio}</td><td>${r.member}</td><td>${r.cert}</td><td>${r.name}</td><td>${r.checkIn}</td><td>${r.checkOut}</td><td>${r.date}</td><td class="text-end fw-bold border-end ${r.amt<0?'text-danger':'text-success'}">${fmt(r.amt)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="text-end"></td><td class="text-end"></td><td class="text-end"></td><td class="border-end"></td><td></td><td></td><td class="text-end"></td><td></td><td></td><td class="text-center">${r.age||''}</td><td class="text-center"><span class="badge ${b}">${r.risk||''}</span></td><td></td></tr>`;
+            }).join('');
+
+            $id('tbl-wf-open-reimb').innerHTML = window.openReimb.map(r => `<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="text-end border-end"></td><td>${r.uuid||''}</td><td><span class="badge ${r.period==='Prior Month'?'bg-warning text-dark':'bg-light text-dark border'}">${r.period||'Current Month'}</span></td><td>${r.unit||''}</td><td>${r.invoice}</td><td>${r.invoiceDate}</td><td>${r.date}</td><td>${r.resCert}</td><td>${r.detCert}</td><td>${r.rtid||''}</td><td>${r.member}</td><td>${r.name}</td><td class="text-end">${fmt(r.reimbAmt)}</td><td class="text-end">${fmt(r.taxAmt)}</td><td class="text-end fw-bold ${r.amt<0?'text-danger':'text-success'}">${fmt(r.amt)}</td><td class="text-center border-end">${r.mathVariance?'FAIL':'OK'}</td><td></td><td></td><td class="text-end"></td><td></td><td></td><td></td><td></td><td>Unmatched</td></tr>`).join('');
+        }
+
+        // =======================================================================
+        // TAB 5 EXECUTIVE DASHBOARD EXTENSIONS (HOOKS)
+        // =======================================================================
+        window.tab5Charts = {}; 
+
+        function initExecutiveDashboard() {
+            
+        }
+
+        function updateExecutiveDashboard() {
+            let expRed = 0, recReimb = 0, outAR = 0, unappCash = 0, rateLeakage = 0;
+            let matchedAmt = 0; 
+            let cmMatchedAmt = 0, pmMatchedAmt = 0, cmExpRed = 0, pmExpRed = 0;
+            let cmRec = 0, pmRec = 0;
+            
+            let manMatchCnt = 0, autoMatchCnt = 0;
+            let currentMonth = $id('month-filter').value;
+            if(currentMonth === 'ALL') {
+                let allDates = [...window.cleansedRed.map(r=>r.date), ...window.cleansedReimb.map(r=>r.date)].filter(Boolean);
+                currentMonth = allDates.length ? getMonthStr(allDates.sort().reverse()[0]) : '';
+            }
+
+            // Total Redemptions (100% Core value)
+            window.cleansedRed.forEach(r => {
+                let amt = Math.abs(r.amt);
+                expRed += amt;
+                if(getMonthStr(r.date) === currentMonth) cmExpRed += amt; else pmExpRed += amt;
+            });
+            
+            // Received Cash
+            window.cleansedReimb.forEach(r => { recReimb += Math.abs(r.amt); });
+
+            // Outstanding AR (Independent)
+            window.openRed.forEach(r => { outAR += Math.abs(r.amt); });
+
+            // Unapplied Cash (Independent)
+            window.openReimb.forEach(r => { unappCash += Math.abs(r.amt); });
+
+            // Matched Portfolio
+            window.matchedData.forEach(m => {
+                let mAmt = Math.abs(m.rm.amt);
+                matchedAmt += mAmt;
+                if(getMonthStr(m.red.date) === currentMonth) cmMatchedAmt += mAmt; else pmMatchedAmt += mAmt;
+                
+                autoMatchCnt++;
+            });
+
+            // Rate Variance Leakage
+            window.rateVariances.forEach(v => {
+                let rAmt = Math.abs(v.rm.amt); 
+                matchedAmt += rAmt;
+                if(getMonthStr(v.red.date) === currentMonth) cmMatchedAmt += rAmt; else pmMatchedAmt += rAmt;
+                
+                let variance = v.isPrior ? Math.abs(v.varianceAmt) : Math.abs(v.red.amt + v.rm.amt);
+                rateLeakage += variance;
+                autoMatchCnt++; 
+            });
+
+            // Manual Match Count Integration
+            let manualMatches = new Set();
+            $$('#tbl-manual-match-gl tr, #tbl-manual-match-rate tr, #tbl-manual-match-red tr, #tbl-manual-match-reimb tr').forEach(tr => {
+                let badge = tr.querySelector('.badge.bg-dark');
+                if(badge && badge.textContent.includes('MAN_MTCH')) {
+                    manualMatches.add(badge.textContent.trim());
+                }
+            });
+            manMatchCnt = manualMatches.size;
+
+            // Business Rules Math
+            let recPct = expRed > 0 ? (matchedAmt / expRed) * 100 : 0;
+            cmRec = cmExpRed > 0 ? (cmMatchedAmt / cmExpRed) * 100 : 0;
+            pmRec = pmExpRed > 0 ? (pmMatchedAmt / pmExpRed) * 100 : 0;
+            
+            let fpyPct = window.cleansedRed.length > 0 ? ((window.cleansedRed.length - window.rateVariances.length - window.openRed.length) / window.cleansedRed.length) * 100 : 0;
+            let autoMatchPct = (autoMatchCnt + manMatchCnt) > 0 ? (autoMatchCnt / (autoMatchCnt + manMatchCnt)) * 100 : 0;
+            let rateLeakPct = expRed > 0 ? (rateLeakage / expRed) * 100 : 0;
+
+            // Update DOM inside Tab 5
+            if($id('exec-exp-red')) $id('exec-exp-red').innerText = window.fmt(expRed);
+            if($id('exec-red-matched')) $id('exec-red-matched').innerText = window.fmt(expRed - outAR) + ' Matched';
+            if($id('exec-red-unmatched')) $id('exec-red-unmatched').innerText = window.fmt(outAR) + ' Unmatched';
+
+            if($id('exec-rec-reimb')) $id('exec-rec-reimb').innerText = window.fmt(recReimb);
+            if($id('exec-reimb-matched')) $id('exec-reimb-matched').innerText = window.fmt(recReimb - unappCash) + ' Matched';
+            if($id('exec-reimb-unmatched')) $id('exec-reimb-unmatched').innerText = window.fmt(unappCash) + ' Unmatched';
+
+            if($id('exec-out-ar')) $id('exec-out-ar').innerText = window.fmt(outAR);
+            if($id('exec-unapp-cash')) $id('exec-unapp-cash').innerText = window.fmt(unappCash);
+            
+            if($id('exec-rec-pct')) $id('exec-rec-pct').innerText = recPct.toFixed(1) + '%';
+            if($id('exec-rate-leak')) $id('exec-rate-leak').innerText = rateLeakPct.toFixed(1) + '%';
+            if($id('exec-rate-leak-amt')) $id('exec-rate-leak-amt').innerText = window.fmt(rateLeakage);
+            
+            if($id('exec-fpy')) $id('exec-fpy').innerText = fpyPct.toFixed(1) + '%';
+            if($id('exec-auto-match')) $id('exec-auto-match').innerText = autoMatchPct.toFixed(1) + '%';
+            if($id('exec-man-match')) $id('exec-man-match').innerText = (100 - autoMatchPct).toFixed(1) + '%';
+            if($id('exec-cm-rec')) $id('exec-cm-rec').innerText = cmRec.toFixed(1) + '%';
+            if($id('exec-pm-rec')) $id('exec-pm-rec').innerText = pmRec.toFixed(1) + '%';
+
+            // Generate Insights
+            let insightHtml = '<ul class="list-unstyled fw-medium mt-2" style="font-size:0.9rem;">';
+            if(expRed > 0) {
+                insightHtml += `<li class="mb-3"><i class="fa-solid fa-check text-success me-2"></i> <strong>Recovery Improved:</strong> Current month recovery is trending at ${cmRec.toFixed(1)}%.</li>`;
+                if(outAR > 0) insightHtml += `<li class="mb-3"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> <strong>Collection Risk:</strong> Unresolved AR Exposure stands at ${window.fmt(outAR)}.</li>`;
+                if(rateLeakage > 0) insightHtml += `<li class="mb-3"><i class="fa-solid fa-arrow-trend-down text-danger me-2"></i> <strong>Revenue Loss:</strong> ${window.fmt(rateLeakage)} identified as permanent rate variance.</li>`;
+                if(unappCash > 0) insightHtml += `<li class="mb-3"><i class="fa-solid fa-gear text-info me-2"></i> <strong>Operational Block:</strong> ${window.fmt(unappCash)} in cash requires manual reconciliation matching.</li>`;
+            } else {
+                insightHtml += `<li><i class="fa-solid fa-clock text-white-50 me-2"></i> No active pipeline data detected.</li>`;
+            }
+            insightHtml += '</ul>';
+            if($id('exec-ai-commentary')) $id('exec-ai-commentary').innerHTML = insightHtml;
+
+            // Store metrics for charts globally inside tab5 scope
+            window.tab5Metrics = { exp: expRed, mat: matchedAmt, lk: rateLeakage, out: outAR, unp: unappCash, man: window.glTotalAmt || 0 };
+        }
+
+        function renderExecutiveCharts() {
+            let m = window.tab5Metrics || { exp:0, mat:0, lk:0, out:0, unp:0, man:0 };
+            
+            // 1. Waterfall Chart
+            let ctxW = $id('execWaterfallChart');
+            if (ctxW) {
+                if (window.tab5Charts.waterfall) window.tab5Charts.waterfall.destroy();
+                window.tab5Charts.waterfall = new Chart(ctxW.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Total Redemption', 'Reimbursement Received', 'Leakage (Rate Variance)', 'Outstanding AR'],
+                        datasets: [{
+                            label: 'Revenue Waterfall',
+                            data: [
+                                [0, m.exp],
+                                [m.exp - m.mat, m.exp],
+                                [m.exp - m.mat - m.lk, m.exp - m.mat],
+                                [0, m.out] 
+                            ],
+                            backgroundColor: ['#1b365d', '#4f46e5', '#ffc107', '#dc3545'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { let val = c.raw[1] - c.raw[0]; return window.fmt(val); } } } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            // 6 & 7. Risk Matrix (Monthly & Weekly Trend Analysis)
+            let ctxMonthly = $id('execRiskMonthly');
+            let ctxWeekly = $id('execRiskWeekly');
+            
+            if (ctxMonthly && ctxWeekly) {
+                let mBuckets = [0, 0, 0, 0];
+                
+                let maxDataWeekIndex = -1;
+                window.openRed.forEach(r => {
+                    let age = r.age || 0;
+                    let amt = Math.abs(r.amt);
+                    
+                    // Monthly Logic
+                    if (age <= 30) mBuckets[0] += amt;
+                    else if (age <= 60) mBuckets[1] += amt;
+                    else if (age <= 90) mBuckets[2] += amt;
+                    else mBuckets[3] += amt;
+
+                    // Weekly Logic Calculation Pre-pass
+                    let wi = Math.floor(Math.max(0, age - 1) / 7);
+                    if (wi > maxDataWeekIndex) maxDataWeekIndex = wi;
+                });
+
+                // Auto-fit to max week logic with "+ 1 week" buffer
+                let targetMaxWeekIndex = maxDataWeekIndex !== -1 ? maxDataWeekIndex + 1 : 4;
+                let wBuckets = new Array(targetMaxWeekIndex + 1).fill(0);
+                let wLabels = Array.from({length: targetMaxWeekIndex + 1}, (_, i) => 'W' + (i+1));
+                
+                window.openRed.forEach(r => {
+                    let age = r.age || 0;
+                    let wi = Math.floor(Math.max(0, age - 1) / 7);
+                    wBuckets[wi] += Math.abs(r.amt);
+                });
+
+                if (window.tab5Charts.monthly) window.tab5Charts.monthly.destroy();
+                window.tab5Charts.monthly = new Chart(ctxMonthly.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-30 Days', '31-60 Days', '61-90 Days', '90+ Days'],
+                        datasets: [{
+                            label: 'Dollar Impact',
+                            data: mBuckets,
+                            backgroundColor: ['#10b981', '#f59e0b', '#f97316', '#ef4444'],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return window.fmt(c.raw); } } } },
+                        scales: { y: { beginAtZero: true, ticks: { callback: function(val) { return '$' + val; } } } }
+                    }
+                });
+
+                // Custom inline plugin to display values directly on top of the dots
+                const weeklyDataLabelPlugin = {
+                    id: 'weeklyDataLabels',
+                    afterDatasetsDraw(chart) {
+                        const { ctx } = chart;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            if (!meta.hidden) {
+                                meta.data.forEach((element, index) => {
+                                    const data = dataset.data[index];
+                                    if (data > 0) {
+                                        ctx.save();
+                                        ctx.fillStyle = '#1e3a8a';
+                                        ctx.font = 'bold 12px sans-serif';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'bottom';
+                                        // Draw the exact dollar amount above the dot
+                                        ctx.fillText(window.fmt(data), element.x, element.y - 12);
+                                        ctx.restore();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                };
+
+                if (window.tab5Charts.weekly) window.tab5Charts.weekly.destroy();
+                window.tab5Charts.weekly = new Chart(ctxWeekly.getContext('2d'), {
+                    type: 'line',
+                    plugins: [weeklyDataLabelPlugin],
+                    data: {
+                        labels: wLabels,
+                        datasets: [{
+                            label: 'Dollar Impact',
+                            data: wBuckets,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            pointBackgroundColor: wBuckets.map(val => val > 0 ? '#1e3a8a' : '#ffffff'),
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 2,
+                            pointRadius: wBuckets.map(val => val > 0 ? 6 : 4),
+                            pointHoverRadius: wBuckets.map(val => val > 0 ? 8 : 6),
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        layout: {
+                            padding: {
+                                top: 25 
+                            }
+                        },
+                        plugins: { 
+                            legend: { display: false }, 
+                            tooltip: { callbacks: { label: function(c) { return window.fmt(c.raw); } } } 
+                        },
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { callback: function(val) { return '$' + val; } } },
+                            x: { grid: { display: true } } 
+                        }
+                    }
+                });
+            }
+        }
+
+        // Hook the dashboard to the existing global update pipeline seamlessly
+        window.updateDashboardMetrics = function() { updateExecutiveDashboard(); };
+        window.updateDashboardCharts = function() { renderExecutiveCharts(); };
+
+    </script>
+</body>
+</html>
